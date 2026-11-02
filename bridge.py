@@ -124,21 +124,17 @@ def aggregate(window_events, web_events, afk_events, start, end, has_afk=True):
             boundaries.add(a)
             boundaries.add(b)
     boundaries = sorted(boundaries)
-    ptrs = [0, 0, 0]
+    positions = [0, 0, 0]
+    running = [[], [], []]
     sources = [windows, webs, afks]
 
     def at(i, stamp):
         source = sources[i]
-        while ptrs[i] < len(source) and source[ptrs[i]][1] <= stamp:
-            ptrs[i] += 1
-        # Overlap is rare but choose the newest applicable source.
-        candidates = []
-        j = ptrs[i]
-        while j < len(source) and source[j][0] <= stamp:
-            if source[j][1] > stamp:
-                candidates.append(source[j])
-            j += 1
-        return candidates[-1][2] if candidates else None
+        while positions[i] < len(source) and source[positions[i]][0] <= stamp:
+            running[i].append(source[positions[i]])
+            positions[i] += 1
+        running[i] = [entry for entry in running[i] if entry[1] > stamp]
+        return running[i][-1][2] if running[i] else None
 
     totals = defaultdict(float)
     labels = {}
@@ -158,14 +154,13 @@ def aggregate(window_events, web_events, afk_events, start, end, has_afk=True):
         key = identity["id"]
         totals[key] += seconds
         labels[key] = identity
-        if timeline and timeline[-1][2] == key and a <= timeline[-1][1] + timedelta(seconds=1):
-            timeline[-1] = (timeline[-1][0], b, key)
+        if timeline and timeline[-1][2] == key and a <= timeline[-1][1] + timedelta(seconds=15):
+            timeline[-1] = (timeline[-1][0], b, key, timeline[-1][3] + seconds)
         else:
-            timeline.append((a, b, key))
+            timeline.append((a, b, key, seconds))
     current = None
     if timeline and (end - timeline[-1][1]).total_seconds() <= 45:
-        a, b, key = timeline[-1]
-        session_seconds = (b - a).total_seconds()
+        a, b, key, session_seconds = timeline[-1]
         current = {**labels[key], "session_seconds": round(session_seconds), "seconds_today": round(totals[key])}
     items = [{**labels[k], "seconds": round(v)} for k, v in totals.items() if v >= 1]
     items.sort(key=lambda v: v["seconds"], reverse=True)
@@ -234,6 +229,11 @@ class Handler(BaseHTTPRequestHandler):
         print("[%s] %s" % (self.log_date_time_string(), fmt % args))
 
     def do_GET(self):
+        # Defend the unauthenticated loopback endpoint from DNS rebinding.
+        allowed_hosts = {f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"}
+        if self.headers.get("Host", "").lower() not in allowed_hosts:
+            self.send_error(403, "Invalid Host")
+            return
         path = urlparse(self.path).path
         if path == "/pause-api/status":
             with LOCK:
