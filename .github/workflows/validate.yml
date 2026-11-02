@@ -1,0 +1,34 @@
+name: Validate PAUSE
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Python
+        run: python -m py_compile bridge.py
+      - name: Test aggregation and privacy
+        run: python -m unittest discover -s tests -v
+      - name: Validate browser script
+        run: node --check v2.js
+      - name: Verify V2 wiring
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('index.html').read_text()
+          assert 'window.PauseBoard={display,closePanel}' in html
+          assert '<script src="v2.js"></script>' in html
+          assert '<link rel="stylesheet" href="v2.css">' in html
+          print('Board integration OK')
+          PY
