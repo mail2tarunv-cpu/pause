@@ -159,7 +159,13 @@ def aggregate(window_events, web_events, afk_events, start, end, has_afk=True):
         else:
             timeline.append((a, b, key, seconds))
     current = None
-    if timeline and (end - timeline[-1][1]).total_seconds() <= 45:
+    # An explicit AFK state takes precedence over the short watcher heartbeat grace.
+    instant = end - timedelta(microseconds=1)
+    ended_afk = has_afk and any(
+        a <= instant < b and data.get("status") == "afk"
+        for a, b, data in afks
+    )
+    if timeline and not ended_afk and (end - timeline[-1][1]).total_seconds() <= 45:
         a, b, key, session_seconds = timeline[-1]
         current = {**labels[key], "session_seconds": round(session_seconds), "seconds_today": round(totals[key])}
     items = [{**labels[k], "seconds": round(v)} for k, v in totals.items() if v >= 1]
