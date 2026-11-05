@@ -1,92 +1,59 @@
 # PAUSE
 
-**A Vestaboard-inspired ambient attention display.** It uses real Mac activity to notice when a social session has run past your own limit, or when extended creative work could use a break — without putting another dashboard in your face.
+**An ambient attention companion — built around a digital split-flap display.**
 
-**Status:** V3 local-network remote controller + iOS Swift prototype source, alongside V2 ActivityWatch tracking. No AI provider is connected yet. Native iOS background delivery is not verified.\n\n**Start here:** [Remote controller + iOS quickstart](docs/QUICKSTART.md). For a phone-controlled board on trusted Wi-Fi, run `python3 relay.py --lan` instead of the ActivityWatch-only `bridge.py`.
+PAUSE is an experiment in making screen time more intentional, without blocking you or turning every moment into another dashboard.
 
-## Run with real screen time on your Mac
+## iPhone app — start here
 
-### 1. Install ActivityWatch
+**Native SwiftUI iPhone app source is now in [`ios/`](ios/).**
 
-Download and start [ActivityWatch](https://activitywatch.net/downloads/). Open [http://localhost:5600](http://localhost:5600) to confirm that its dashboard is recording app usage.
+The new iPhone-first app has:
+- **Today** — a real, privacy-protected iPhone Screen Time report (rendered in Apple's Device Activity Report extension).
+- **Rules** — permission request, Apple's app/site/category picker, a daily threshold, and tone selection.
+- **Notifications** — local, gentle reminders when the selected daily activity threshold is reached.
+- **Board** — custom message composition and a 6×22 split-flap preview; optional remote sending to a paired Mac board.
+- **Settings** — monitoring controls, permission status, deletion of local PAUSE event history, and disconnection.
 
-Grant ActivityWatch's window watcher Accessibility permission if macOS requests it. PAUSE itself does **not** need Accessibility, Full Disk Access, or Screen Recording permission.
+**Install instructions:** [ios/README.md](ios/README.md). You'll need Xcode, a signing team that supports the Family Controls capability, and a physical iPhone. The native app is source code that still requires Apple signing and real-device testing, not an App Store download or compiled IPA.
 
-For individual sites such as Instagram and YouTube, also install the official [ActivityWatch Web Watcher for Chrome / Chromium](https://chromewebstore.google.com/detail/activitywatch-web-watcher/nglaklhklhcoonedhgnpgddginnjdadi) (or [Firefox watcher](https://addons.mozilla.org/en-US/firefox/addon/activitywatch-web-watcher/)). Browser-level activity alone can't distinguish Instagram from other open sites. The PAUSE connector currently relies on the browser watcher for per-site activity; Safari is not supported for per-site PAUSE nudges.
+**No ActivityWatch is necessary for the iPhone app.** We haven't built the native Mac tracker yet.
 
-### 2. Start PAUSE locally
+## Web Vestaboard / prototype
 
-On your Mac, open Terminal:
+The original digital split-flap board remains in [`index.html`](index.html). It has:
+- 6 rows × 22 columns, animated tile flipping, presets and custom messages.
+- V2 attention UI and clearly labeled demo mode.
+- A local network controller in [`controller.html`](controller.html).
+
+To control the board from your iPhone on a trusted private network while we build the native Mac app:
 
 ```bash
 git clone https://github.com/mail2tarunv-cpu/pause.git
 cd pause
-python3 bridge.py
+python3 relay.py --lan
 ```
 
-If you already cloned the repo, use `git pull` from its folder instead of cloning again.
+Open `http://127.0.0.1:8765` on the Mac. From your iPhone on the same Wi-Fi, visit `http://MAC-IP:8765/controller` and enter the pairing key printed in Terminal.
 
-Open **http://127.0.0.1:8765**. Leave Terminal and ActivityWatch running while using the board. Choose **Attention → Mac activity**.
+This uses unencrypted local HTTP, so **do not expose it to the internet or use untrusted Wi-Fi**. The paired control flow does **not** require ActivityWatch.
 
-There are no Python packages to install. Python 3.9+ is required.
+### Older ActivityWatch integration
 
-### 3. Set your nudges
+The earlier `bridge.py` and V2 activity code remain in the repository for historical compatibility only. They were built for an earlier Mac prototype, not for the new iPhone app. ActivityWatch is **not** a requirement for the new architecture. We can retire this code after the native Mac app replaces it.
 
-In **Attention**:
-- Configure continuous-use limits for **Social**, **Creative / work**, and **Entertainment**.
-- Pick a message tone (gentle, playful, direct) and cooldown (subtle, balanced, assertive).
-- Change categories for detected apps and websites, or give them individual minute limits.
-- Use **Take a break**, **Keep going**, or **Not helpful** when a nudge appears. These responses affect cooldowns; repeated unhelpful responses prompt you to consider a different limit.
+## What we are not claiming yet
 
-An app classified **Other** or **Ignore** does not trigger nudges. All limits and feedback are stored in your browser's localStorage, so they'll be different across browsers/devices. Nudges work while the board page remains open — this is not a system-wide background notification service.
+- The native iOS app has **not been signed or tested on the user's physical iPhone**.
+- iOS Screen Time uses Apple's private, sandboxed report extension. We cannot upload unrestricted identifiable iPhone activity histories to a database.
+- Automatic iPhone-to-Mac delivery from a background monitor extension is best effort, not guaranteed. It is disabled by default until opted in.
+- One selected app/site/category group and one **cumulative daily** usage threshold are implemented. Session-aware AI and per-app conditional rules are future work.
+- No AI provider, native Mac tracker, cloud account, or cross-device sync is connected yet.
 
-## Test without ActivityWatch
+## Technical checks
 
-Open `index.html` directly or deploy it on Vercel as a static site (no build step). Choose **Attention → Demo mode**, pick Instagram, Figma, or YouTube, and press **+5 min** until the category threshold is reached. Use **Preview a nudge** to test the tone immediately.
-
-**Important:** Demo data is fake and explicitly labeled. A static Vercel deployment does **not** connect to your Mac ActivityWatch service: open the local board URL above for real tracking. The bridge is intentionally accessible only on loopback.
-
-## How tracking works
-
-```
-ActivityWatch (local Mac app and AFK watchers)
-              +
-ActivityWatch browser extension (optional website activity)
-              |
-       bridge.py (127.0.0.1:8765)
-              |
-    GET /pause-api/status every 15 seconds
-              |
-     PAUSE browser nudge rules
-              |
-      Vestaboard-style display
-```
-
-The bridge uses ActivityWatch's [documented REST API](https://docs.activitywatch.net/en/latest/api/rest.html). It reads daily local events, excludes AFK periods, and gives website activity precedence over the browser application so overlapping events are not counted twice. It returns **application names and website hostnames only** — not raw URLs, page titles, search terms, or document titles. It doesn't upload your screen activity.
-
-Current session calculations are approximate because ActivityWatch updates via periodic watcher heartbeats and has its own idle detection timeout. PAUSE reports **Mac activity**, not the iPhone Screen Time total.
-
-## Project files
-
-- `index.html` — V1 6 × 22 split-flap board and message composer
-- `v2.css`, `v2.js` — attention controls, live/demo modes, nudge states and feedback
-- `bridge.py` — standard-library ActivityWatch companion/server\n- `relay.py`, `controller.html`, `remote.js` — paired LAN controller and remote board receiver\n- `ios/` — SwiftUI + Screen Time monitor extension source, requiring Xcode configuration
-- `tests/test_bridge.py` — aggregation, idle time, browser precedence and privacy tests
-
-## Development checks
-
-```bash
-python3 -m unittest discover -s tests -v
-python3 -m py_compile bridge.py
-node --check v2.js
-```
-
-## Still not included in the working deployment
-
-- No verified, automatic iOS/iPhone background delivery yet (Swift source is provided for testing)
-- No AI-generated nudges or model-driven timing
-- No macOS global notification daemon
-- No automatic blocking of websites or applications
-- No cloud collection or tracking across devices
+- Python aggregation and local controller tests: `python3 -m unittest discover -s tests -v`
+- JavaScript: `node --check v2.js && node --check remote.js`
+- iOS native compile: [GitHub Actions — Build PAUSE for iPhone](../../actions/workflows/ios-build.yml) (macOS runner, XcodeGen, iOS Simulator SDK; not a substitute for physical-device testing)
 
 This is an independent concept prototype, not affiliated with or endorsed by Vestaboard.
