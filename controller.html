@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light"><meta name="theme-color" content="#ebeae6"><title>PAUSE — Controller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Roboto+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{color:#242622;background:#ebeae6;font-family:DM Sans,system-ui,sans-serif;font-size:14px}*{box-sizing:border-box}body{margin:0;min-height:100dvh}button,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #8f947b;outline-offset:2px}
+header{height:82px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5vw,64px);border-bottom:1px solid #deddd6}.logo{font-weight:700;letter-spacing:.2em;font-size:15px}.header-meta{font-size:11px;color:#888a81}.layout{display:grid;grid-template-columns:minmax(260px,480px) minmax(340px,1fr);gap:clamp(40px,7vw,120px);padding:clamp(28px,5vw,70px) clamp(20px,7vw,100px);align-items:start;max-width:1500px;margin:auto}.eyebrow{font-size:10px;letter-spacing:.2em;color:#8a8c83;text-transform:uppercase;margin-bottom:12px;font-weight:700}h1{font-size:clamp(32px,4.5vw,56px);letter-spacing:-.065em;font-weight:500;line-height:1.02;margin:0 0 20px}.sub{font-size:13px;line-height:1.8;color:#81837a;margin:0 0 34px;max-width:400px}.section{padding:22px 0;border-top:1px solid #cfcec6}.section-title{font-size:12px;font-weight:700;margin:0 0 14px}.label{display:block;font-size:11px;font-weight:600;margin-bottom:9px}.field{width:100%;padding:13px 14px;border:1px solid #d0cfc6;border-radius:7px;background:#f7f6f3;color:#242622}.field::placeholder{color:#aaa9a1}.pair-row{display:flex;gap:8px}.pair-row input{min-width:0;flex:1}.pair-row button,.button{border-radius:7px;border:1px solid #242724;background:#252825;color:#faf9f5;font-weight:600;padding:13px 18px;white-space:nowrap;font-size:12px}.button:hover,.pair-row button:hover{background:#464945}.button:disabled{opacity:.45;cursor:not-allowed}.hint{font-size:11px;color:#8c8d84;line-height:1.7;margin:10px 0 0}.status{display:flex;align-items:center;gap:7px;font-size:11px;color:#898a82;margin:12px 0}.dot{width:7px;height:7px;border-radius:50%;background:#c6a966}.dot.ok{background:#628969}.dot.error{background:#c56b59}.composer{height:126px;resize:vertical;font:500 18px/1.5 "Roboto Condensed",monospace;letter-spacing:.055em;text-transform:uppercase}.counter{text-align:right;color:#a0a096;font-size:11px;margin:8px 0 14px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.button.secondary{background:transparent;border-color:#cecdc4;color:#64665e}.button.secondary:hover{background:#fff}.preset-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.preset{border:1px solid #d6d5cd;border-radius:8px;padding:14px;background:#f3f2ed;text-align:left;transition:background .2s}.preset:hover{background:white}.preset .name{font-size:12px;font-weight:700}.preset .detail{font-size:10px;color:#898a82;margin-top:6px}.right{position:sticky;top:50px}.board-frame{padding:clamp(10px,1.7vw,25px);background:linear-gradient(145deg,#303131,#0b0d0d);border:2px solid #303131;border-radius:9px;box-shadow:0 36px 60px #2427253b,inset 0 1px #7776}.board{display:grid;grid-template-columns:repeat(22,minmax(0,1fr));gap:clamp(1px,.25vw,3px);padding:clamp(4px,.55vw,9px);background:#090a0a;border-radius:3px}.tile{aspect-ratio:.8;background:linear-gradient(#282b2b 0 49%,#101212 49.3% 50.8%,#232525 51% 100%);border-radius:1px;box-shadow:inset 0 1px #52545422;position:relative;display:grid;place-items:center;overflow:hidden}.tile b{font:500 clamp(6px,1.25vw,20px)/1 "Roboto Condensed",monospace;color:#e6e6e1;letter-spacing:-.08em}.board-note{text-align:center;font-size:10px;color:#a5a59c;margin-top:22px}.display-caption{margin-top:25px;color:#85877c;font-size:12px;line-height:1.7}.badge{display:inline-flex;border:1px solid #cdccc4;border-radius:50px;padding:7px 10px;font-size:10px;color:#6b6c64;letter-spacing:.04em;margin-bottom:20px}.message{font-size:12px;min-height:20px;margin-top:13px;color:#667368}.message.error{color:#aa5945}.privacy{font-size:10px;color:#a0a097;line-height:1.7;margin-top:34px}@media(max-width:900px){.layout{grid-template-columns:1fr;gap:34px}.right{position:relative;top:auto;order:-1}.board-frame{max-width:760px}.tile b{font-size:clamp(7px,2.3vw,18px)}.board-note{margin-top:14px}header{height:60px}.layout{padding-top:24px}.sub{margin-bottom:20px}}@media(max-width:520px){.layout{gap:25px}.right{order:0}.preset-grid{gap:6px}.pair-row{flex-wrap:wrap}.pair-row button{width:100%}.tile b{font-size:clamp(6px,2.45vw,11px)}h1{font-size:34px}}
+</style></head>
+<body>
+<header><div class="logo">PAUSE <span style="font-weight:400;letter-spacing:.03em;color:#9a9c91;font-size:10px">/ CONTROL</span></div><div class="header-meta">LOCAL CONTROLLER · V3</div></header>
+<main class="layout">
+<section class="left">
+<div class="eyebrow">A quieter way to be intentional</div><h1>A little less<br>screen. A little<br>more life.</h1>
+<p class="sub">Send a thought, a reminder, or an intentional break to your digital split-flap display. All controls stay on your own network.</p>
+<div class="section">
+ <h2 class="section-title">01 / Pair with your board</h2>
+ <label class="label" for="pair">Pairing code</label>
+ <div class="pair-row"><input class="field" id="pair" placeholder="Code shown in Mac Terminal" type="password" autocomplete="off"><button id="pairButton">Connect</button></div>
+ <div class="status"><span class="dot" id="led"></span><span id="statusText">Not connected</span></div>
+ <p class="hint">Run <code>python3 relay.py --lan</code> on the Mac. Use the printed pairing code. Both devices must be on the same trusted Wi-Fi.</p>
+</div>
+<div class="section">
+ <h2 class="section-title">02 / Write what you want to see</h2>
+ <label class="label" for="message">Message on the board</label>
+ <textarea id="message" class="field composer" spellcheck="false" maxlength="280">TAKE A LITTLE PAUSE
+YOU ARE ALLOWED TO
+DO NOTHING AT ALL</textarea>
+ <div id="counter" class="counter">0 characters</div>
+ <div class="actions"><button id="send" class="button">Send to Vestaboard ↗</button><button id="clear" class="button secondary">Clear remote message</button></div>
+ <p id="notice" class="message" role="status" aria-live="polite"></p>
+</div>
+<div class="section">
+ <h2 class="section-title">03 / Simulate an attention nudge</h2>
+ <div class="preset-grid">
+  <button class="preset" data-threshold="social"><div class="name">Social media</div><div class="detail">A more direct reminder</div></button>
+  <button class="preset" data-threshold="creative"><div class="name">Creative work</div><div class="detail">A gentle break suggestion</div></button>
+  <button class="preset" data-threshold="entertainment"><div class="name">Entertainment</div><div class="detail">A simple check-in</div></button>
+  <button class="preset" id="previewMessage"><div class="name">Reset preview</div><div class="detail">Restore your draft</div></button>
+ </div>
+</div>
+<p class="privacy">PAUSE's local controller doesn't send app histories to the cloud. The optional LAN connection uses unencrypted HTTP; use it only on a private trusted network. This is a prototype, not a remotely secured production service.</p>
+</section>
+<section class="right"><div class="badge">PREVIEW / 6 × 22 FLAPS</div><div class="board-frame"><div id="board" class="board" aria-label="Preview of the six by twenty-two character display"></div></div><p class="board-note">A deliberate message, one tile at a time.</p><p class="display-caption">Whatever you send here appears on PAUSE's Mac-hosted board. The display should stay open at <strong>127.0.0.1:8765</strong> on the Mac.</p></section>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const board=$("board");
+const chars=Array.from({length:132},()=>{let tile=document.createElement("div"),b=document.createElement("b");tile.className="tile";tile.append(b);board.append(tile);return b});
+function format(raw){const lines=[];for(let line of raw.toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\-\n]/g," ").split("\n")){if(!line.trim()){lines.push("");continue}let part="";for(const word of line.trim().split(/\s+/)){if((part?part.length+1:0)+word.length+part.length>22){if(part)lines.push(part);part="";}if(word.length>22){for(let at=0;at<word.length;at+=22)lines.push(word.slice(at,at+22));}else{part+=(part?" ":"")+word;}}if(part)lines.push(part);}const used=lines.slice(0,6),result=Array(132).fill(" "),row=Math.floor((6-used.length)/2);used.forEach((s,i)=>{[...s].forEach((ch,j)=>{const col=Math.floor((22-s.length)/2)+j;if(col>=0&&col<22)result[(row+i)*22+col]=ch;})});return result;}
+function preview(value){format(value).forEach((ch,i)=>chars[i].textContent=ch===" "?"":ch);$("counter").textContent=value.length+" / 280 characters"}
+let paired=false;const msg=$("message"),code=$("pair");code.value=sessionStorage.getItem("pause-lan-key")||"";
+function state(ok,text){paired=ok;$("led").className="dot"+(ok?" ok":" error");$("statusText").textContent=text}
+function notice(text,isError=false){$("notice").textContent=text;$("notice").className="message"+(isError?" error":"")}
+async function command(action,fields={}){
+ const key=code.value.trim();
+ if(!key)throw Error("Enter the pairing code from Terminal.");
+ const res=await fetch("/pause-api/command",{method:"POST",headers:{"Content-Type":"application/json","X-PAUSE-Key":key},body:JSON.stringify({action,...fields})});
+ const json=await res.json();if(!res.ok)throw Error(json.error||"Unable to reach the board");
+ return json;
+}
+$("pairButton").addEventListener("click",async()=>{
+ try{await command("ping");sessionStorage.setItem("pause-lan-key",code.value.trim());state(true,"Paired successfully · Ready to send");notice("Paired. You can now send messages.");}
+ catch(e){state(false,"Connection failed");notice(e.message,true)}
+});
+$("send").addEventListener("click",async()=>{try{await command("message",{message:msg.value});notice("Sent. The board will flip to your message.");}catch(e){notice(e.message,true)}});
+$("clear").addEventListener("click",async()=>{try{await command("clear");notice("Remote message cleared.");}catch(e){notice(e.message,true)}});
+document.querySelectorAll("[data-threshold]").forEach(btn=>btn.addEventListener("click",async()=>{
+ const cat=btn.dataset.threshold;
+ const samples={social:"YOU REACHED YOUR LIMIT\n\nREADY TO STEP AWAY?",creative:"YOU HAVE BEEN CREATING\nFOR A WHILE\n\nSTRETCH BREAK?",entertainment:"TIME FOR A CHECK-IN\n\nKEEP WATCHING OR PAUSE?"};
+ preview(samples[cat]);
+ try{await command("threshold",{category:cat});notice(cat[0].toUpperCase()+cat.slice(1)+" test nudge sent.");}catch(e){notice(e.message,true)}
+}));
+$("previewMessage").addEventListener("click",()=>preview(msg.value));
+msg.addEventListener("input",()=>preview(msg.value));preview(msg.value);
+if(code.value)state(false,"Saved pairing code · Tap Connect to verify");
+})();
+</script></body></html>
