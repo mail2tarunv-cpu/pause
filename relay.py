@@ -124,8 +124,10 @@ class Handler(LocalActivityHandler):
         if not isinstance(payload, dict):
             return self.response(400, {"error": "Invalid request"})
         action = payload.get("action")
-        if action not in ("message", "threshold", "clear"):
+        if action not in ("message", "threshold", "clear", "ping"):
             return self.response(400, {"error": "Unknown action"})
+        if action == "ping":
+            return self.response(200, {"ok": True, "paired": True})
         message = None
         if action == "message":
             message = normalize_message(payload.get("message"))
