@@ -82,6 +82,7 @@
     <div class="nudge-actions"><button type="button" data-response="break">Take a break</button><button type="button" data-response="continue">Keep going</button><button type="button" data-response="unhelpful">Not helpful</button></div>`;
   document.body.append(banner);
   const board = message => {
+    if (window.PauseRemote?.isHeld?.()) return;
     if (window.PauseBoard && window.PauseBoard.display) window.PauseBoard.display(message);
   };
   function activeData(){
