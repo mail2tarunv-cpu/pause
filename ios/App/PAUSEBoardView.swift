@@ -116,6 +116,21 @@ struct PAUSEBoardView: View {
                     .textInputAutocapitalization(.never)
                     .pauseField()
 
+                Rectangle().fill(PAUSEPalette.line).frame(height: 1)
+                Toggle(isOn: Binding(
+                    get: { model.forwardThresholds },
+                    set: { model.setForwardThresholds($0) }
+                )) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Forward threshold events")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Opt in to sending generic check-ins automatically. Never app names or Screen Time reports.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(PAUSEPalette.secondary)
+                    }
+                }
+                .tint(PAUSEPalette.ink)
+
                 Button("Pair with board") {
                     Task { await model.pairBoard() }
                 }
