@@ -75,6 +75,10 @@ document.querySelectorAll("[data-threshold]").forEach(btn=>btn.addEventListener(
 }));
 $("previewMessage").addEventListener("click",()=>preview(msg.value));
 msg.addEventListener("input",()=>preview(msg.value));preview(msg.value);
+if (!/^(localhost|127\\.|10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.)/.test(location.hostname)) {
+  state(false,"Local Mac relay required");
+  notice("This hosted preview is not paired. Open http://MAC-IP:8765/controller on the same Wi-Fi as your Mac.",true);
+}
 if(code.value)state(false,"Saved pairing code · Tap Connect to verify");
 })();
 </script></body></html>
