@@ -2,7 +2,7 @@
 
 **A Vestaboard-inspired ambient attention display.** It uses real Mac activity to notice when a social session has run past your own limit, or when extended creative work could use a break — without putting another dashboard in your face.
 
-**Status:** V2 prototype. Runs locally with ActivityWatch. Static deployments continue to work in clearly labeled demo mode. No AI provider is connected yet; current nudges use understandable thresholds and tone templates.
+**Status:** V3 local-network remote controller + iOS Swift prototype source, alongside V2 ActivityWatch tracking. No AI provider is connected yet. Native iOS background delivery is not verified.\n\n**Start here:** [Remote controller + iOS quickstart](docs/QUICKSTART.md). For a phone-controlled board on trusted Wi-Fi, run `python3 relay.py --lan` instead of the ActivityWatch-only `bridge.py`.
 
 ## Run with real screen time on your Mac
 
@@ -70,7 +70,7 @@ Current session calculations are approximate because ActivityWatch updates via p
 
 - `index.html` — V1 6 × 22 split-flap board and message composer
 - `v2.css`, `v2.js` — attention controls, live/demo modes, nudge states and feedback
-- `bridge.py` — standard-library ActivityWatch companion/server
+- `bridge.py` — standard-library ActivityWatch companion/server\n- `relay.py`, `controller.html`, `remote.js` — paired LAN controller and remote board receiver\n- `ios/` — SwiftUI + Screen Time monitor extension source, requiring Xcode configuration
 - `tests/test_bridge.py` — aggregation, idle time, browser precedence and privacy tests
 
 ## Development checks
@@ -81,9 +81,9 @@ python3 -m py_compile bridge.py
 node --check v2.js
 ```
 
-## Explicitly not in V2
+## Still not included in the working deployment
 
-- No iOS/iPhone Screen Time ingestion
+- No verified, automatic iOS/iPhone background delivery yet (Swift source is provided for testing)
 - No AI-generated nudges or model-driven timing
 - No macOS global notification daemon
 - No automatic blocking of websites or applications
