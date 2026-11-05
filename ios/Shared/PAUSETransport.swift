@@ -9,6 +9,7 @@ enum PAUSETransport {
     static let pairingKey = "pairingCode"
     static let pendingKey = "pendingThreshold"
     static let historyKey = "thresholdHistory"
+    static let forwardKey = "forwardThresholds"
 
     struct PendingThreshold: Codable {
         let id: String
@@ -97,7 +98,9 @@ enum PAUSETransport {
     static func stageThreshold(category: String) {
         let event = PendingThreshold(id: UUID().uuidString, category: category, occurredAt: Date())
         guard let data = try? JSONEncoder().encode(event) else { return }
-        preferences?.set(data, forKey: pendingKey)
+        if preferences?.bool(forKey: forwardKey) == true {
+            preferences?.set(data, forKey: pendingKey)
+        }
         var records = history()
         records.insert(event, at: 0)
         if let encoded = try? JSONEncoder().encode(Array(records.prefix(40))) {
@@ -118,8 +121,16 @@ enum PAUSETransport {
     }
 
     static func flushPending() async throws {
+        guard preferences?.bool(forKey: forwardKey) == true else { return }
         guard let data = preferences?.data(forKey: pendingKey),
               let event = try? JSONDecoder().decode(PendingThreshold.self, from: data) else {
+            return
+        }
+        // An old alert should never reappear hours or days later.
+        guard Date().timeIntervalSince(event.occurredAt) < 3600 else {
+            if preferences?.data(forKey: pendingKey) == data {
+                preferences?.removeObject(forKey: pendingKey)
+            }
             return
         }
         try await send(action: "threshold", category: event.category)
