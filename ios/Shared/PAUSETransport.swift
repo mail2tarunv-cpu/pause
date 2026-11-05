@@ -65,7 +65,8 @@ enum PAUSETransport {
             throw TransportError.invalidAddress
         }
         components.path = "/pause-api/command"
-        return components.url ?? { fatalError("Validated local URL could not be constructed") }()
+        guard let endpoint = components.url else { throw TransportError.invalidAddress }
+        return endpoint
     }
 
     static func send(action: String, category: String? = nil) async throws {
