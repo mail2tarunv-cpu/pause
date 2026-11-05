@@ -59,6 +59,7 @@ final class PAUSEModel: ObservableObject {
     @Published var boardAddress = ""
     @Published var boardKey = ""
     @Published var boardConnected = false
+    @Published var forwardThresholds = false
     @Published var boardDraft = "TAKE A LITTLE PAUSE\nYOU ARE ALLOWED TO\nDO NOTHING AT ALL"
 
     var selectionCount: Int {
@@ -85,6 +86,7 @@ final class PAUSEModel: ObservableObject {
         }
         let savedMinutes = store?.integer(forKey: "selectedMinutes") ?? 0
         thresholdMinutes = savedMinutes >= 5 ? savedMinutes : 20
+        forwardThresholds = store?.bool(forKey: PAUSETransport.forwardKey) ?? false
         boardAddress = store?.string(forKey: PAUSETransport.bridgeKey) ?? ""
         boardKey = store?.string(forKey: PAUSETransport.pairingKey) ?? ""
         boardDraft = store?.string(forKey: "boardDraft") ??
@@ -191,6 +193,15 @@ final class PAUSEModel: ObservableObject {
         PAUSETransport.clearHistory()
         recentEvents = []
         status = "Local threshold history cleared."
+    }
+
+    func setForwardThresholds(_ isEnabled: Bool) {
+        forwardThresholds = isEnabled
+        PAUSETransport.preferences?.set(isEnabled, forKey: PAUSETransport.forwardKey)
+        if !isEnabled {
+            PAUSETransport.preferences?.removeObject(forKey: PAUSETransport.pendingKey)
+        }
+        status = isEnabled ? "Automatic board sharing enabled. Only generic threshold categories are forwarded." : "Automatic board sharing disabled."
     }
 
     func saveBoardConnection() {
