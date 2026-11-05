@@ -1,0 +1,34 @@
+name: Build PAUSE for iPhone
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-build.yml"
+  workflow_dispatch:
+
+jobs:
+  ios-build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: |
+          cd ios
+          xcodegen generate
+      - name: Compile iOS simulator build without signing
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/PAUSECompanion.xcodeproj \
+            -scheme PAUSECompanion \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee /tmp/pause-ios-build.log | tail -100
