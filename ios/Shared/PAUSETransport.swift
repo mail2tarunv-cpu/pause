@@ -8,6 +8,7 @@ enum PAUSETransport {
     static let bridgeKey = "bridgeAddress"
     static let pairingKey = "pairingCode"
     static let pendingKey = "pendingThreshold"
+    static let historyKey = "thresholdHistory"
 
     struct PendingThreshold: Codable {
         let id: String
@@ -69,13 +70,14 @@ enum PAUSETransport {
         return endpoint
     }
 
-    static func send(action: String, category: String? = nil) async throws {
+    static func send(action: String, category: String? = nil, message: String? = nil) async throws {
         guard let key = preferences?.string(forKey: pairingKey), !key.isEmpty else {
             throw TransportError.missingConnection
         }
         let endpoint = try endpoint()
         var body: [String: String] = ["action": action]
         if let category { body["category"] = category }
+        if let message { body["message"] = message }
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 5
@@ -96,6 +98,23 @@ enum PAUSETransport {
         let event = PendingThreshold(id: UUID().uuidString, category: category, occurredAt: Date())
         guard let data = try? JSONEncoder().encode(event) else { return }
         preferences?.set(data, forKey: pendingKey)
+        var records = history()
+        records.insert(event, at: 0)
+        if let encoded = try? JSONEncoder().encode(Array(records.prefix(40))) {
+            preferences?.set(encoded, forKey: historyKey)
+        }
+    }
+
+    static func history() -> [PendingThreshold] {
+        guard let data = preferences?.data(forKey: historyKey),
+              let records = try? JSONDecoder().decode([PendingThreshold].self, from: data) else {
+            return []
+        }
+        return records
+    }
+
+    static func clearHistory() {
+        preferences?.removeObject(forKey: historyKey)
     }
 
     static func flushPending() async throws {
