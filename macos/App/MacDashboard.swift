@@ -174,16 +174,16 @@ struct MacDashboard: View {
                     .frame(minHeight: 150)
                 } else {
                     let total = max(1, activity.todayRecords.reduce(0) { $0 + $1.seconds })
-                    ForEach(activity.byCategory, id: \.0) { name, seconds in
+                    ForEach(activity.byCategory, id: \.0) { entry in
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
-                                Text(name.capitalized)
+                                Text(entry.0.capitalized)
                                 Spacer()
-                                Text("\(seconds / 60)m")
+                                Text("\(entry.1 / 60)m")
                                     .font(.body.monospacedDigit())
                                     .foregroundStyle(.secondary)
                             }
-                            ProgressView(value: Double(seconds), total: Double(total))
+                            ProgressView(value: Double(entry.1), total: Double(total))
                                 .tint(.accentColor)
                         }
                     }
