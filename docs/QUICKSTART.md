@@ -57,12 +57,14 @@ Requirements:
 Setup:
 
 ```bash
-cd pause/ios
+cd pause
+swift scripts/generate_app_icons.swift
+cd ios
 xcodegen generate
 open PAUSECompanion.xcodeproj
 ```
 
-In Xcode, update bundle IDs from the placeholder `com.example.pause` and `com.example.pause.Monitor`, choose your signing team, and configure **Family Controls** and **App Groups** for *both* the app and Device Activity Monitor extension. Replace the placeholder App Group `group.com.example.pause` in **both** entitlements files and `Shared/PAUSETransport.swift` with the group registered in your developer account. Enable automatic signing and make sure the group exists in both targets' capabilities. Apple may require additional approval to distribute the app via TestFlight or the App Store.
+The Swift icon generator also builds the original PAUSE launcher icons for iPhone, Mac and the Chrome extension. In Xcode, update bundle IDs from the placeholder `com.example.pause` and `com.example.pause.Monitor`, choose your signing team, and configure **Family Controls** and **App Groups** for *both* the app and Device Activity Monitor extension. Replace the placeholder App Group `group.com.example.pause` in **both** entitlements files and `Shared/PAUSETransport.swift` with the group registered in your developer account. Enable automatic signing and make sure the group exists in both targets' capabilities. Apple may require additional approval to distribute the app via TestFlight or the App Store.
 
 Run the app on a **physical iPhone**, not just a simulator.
 
