@@ -10,6 +10,8 @@ struct PAUSEMacApp: App {
     var body: some Scene {
         WindowGroup("PAUSE for Mac", id: "main") {
             MacDashboard(activity: activity, cloud: cloud)
+                .tint(Color(red: 0.16, green: 0.42, blue: 0.44))
+                .symbolRenderingMode(.hierarchical)
                 .frame(minWidth: 740, minHeight: 560)
                 .onAppear {
                     activity.startIfNeeded()
