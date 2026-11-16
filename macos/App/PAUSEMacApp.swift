@@ -7,10 +7,15 @@ struct PAUSEMacApp: App {
     @StateObject private var cloud = MacCloudSync()
     @Environment(\.openWindow) private var openWindow
 
+    init() {
+        PAUSEMacFonts.register()
+    }
+
     var body: some Scene {
         WindowGroup("PAUSE for Mac", id: "main") {
             MacDashboard(activity: activity, cloud: cloud)
-                .tint(Color(red: 0.16, green: 0.42, blue: 0.44))
+                .font(PAUSEMacType.body())
+                .tint(PAUSEMacPalette.tint)
                 .symbolRenderingMode(.hierarchical)
                 .frame(minWidth: 740, minHeight: 560)
                 .onAppear {
