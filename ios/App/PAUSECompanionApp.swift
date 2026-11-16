@@ -64,6 +64,7 @@ struct PAUSERootView: View {
             }
             .tabItem { Label("Settings", systemImage: "gearshape") }
         }
+        .font(PAUSEType.body())
         .tint(PAUSEPalette.tint)
         .symbolRenderingMode(.hierarchical)
     }
