@@ -121,7 +121,7 @@ struct PAUSEBoardView: View {
                 Text("For the older Mac relay on trusted Wi-Fi. Only generic reminder categories are forwarded, never app identities or Screen Time reports.")
             }
 
-            Section("Try a reminder") {
+            Section {
                 Label(model.category.title + " check-in",
                       systemImage: model.category.icon)
                     .foregroundStyle(.secondary)
@@ -129,6 +129,8 @@ struct PAUSEBoardView: View {
                     Task { await model.sendExampleNudge() }
                 }
                 .disabled(model.isWorking || !model.boardConnected)
+            } header: {
+                Text("Try a reminder")
             } footer: {
                 Text("A test message is not measured Screen Time.")
             }
