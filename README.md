@@ -58,6 +58,10 @@ iOS Screen Time -> protected report extension  | (report never uploaded)
 - Native OAuth/signing, browser extension pairing, and hosted RLS still require real-world integration tests.
 - Never use a service-role key in a public client, expose the old local HTTP relay to the internet, or share pairing secrets.
 
+## Apple-native design audit
+
+The iPhone now uses native tab/navigation stacks, grouped forms, Dynamic Type-friendly styles, and adaptive Light/Dark Mode. The Mac uses a real native sidebar, menu-bar commands, GroupBox panels and platform controls. The browser extension popup follows macOS appearance. The 6×22 split-flap board remains the product signature. Read [the complete UI audit and manual visual QA checklist](docs/UI-AUDIT.md).
+
 ## Verification
 
 GitHub Actions checks: [Python / JS / schema privacy validation](.github/workflows/validate.yml), [iOS Simulator compile](.github/workflows/ios-build.yml), and [native macOS compile](.github/workflows/macos-build.yml).
