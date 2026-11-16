@@ -55,12 +55,12 @@ const chars=Array.from({length:132},()=>{let tile=document.createElement("div"),
 const palette={'🟥':'red','🟧':'orange','🟨':'yellow','🟩':'green','🟦':'blue','🟪':'violet','⬜':'white'};
 function format(raw){
   const lines=[];
-  for(let line of String(raw||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\\-\\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ').split('\\n')){
+  for(let line of String(raw||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\-\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ').split('\n')){
     const chars=Array.from(line);
     if(chars.length===22 && chars.some(ch=>palette[ch])){lines.push(line);continue}
     if(!line.trim()){lines.push('');continue}
     let part='';
-    for(const word of line.trim().split(/\\s+/)){
+    for(const word of line.trim().split(/\s+/)){
       const letters=Array.from(word);
       if(letters.length>22){
         if(part){lines.push(part);part=''}
