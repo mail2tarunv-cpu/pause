@@ -50,7 +50,7 @@ struct PAUSEHomeView: View {
                 }
             }
 
-            Section("Your daily rule") {
+            Section {
                 HStack(spacing: 12) {
                     Image(systemName: model.category.icon)
                         .font(.title3)
@@ -74,6 +74,8 @@ struct PAUSEHomeView: View {
                     }
                 }
                 .padding(.vertical, 3)
+            } header: {
+                Text("Your daily rule")
             } footer: {
                 Text("One cumulative daily threshold. It does not measure continuous sessions.")
             }
@@ -103,7 +105,7 @@ struct PAUSEHomeView: View {
             }
 
             if cloud.enabled && cloud.signedIn {
-                Section("Mac activity · Synced") {
+                Section {
                     if cloud.macCategoryTotals.isEmpty {
                         PAUSEInfoRow(
                             symbol: "macbook",
@@ -121,6 +123,8 @@ struct PAUSEHomeView: View {
                             }
                         }
                     }
+                } header: {
+                    Text("Mac activity · Synced")
                 } footer: {
                     Text("Only generic Mac categories sync. iPhone Screen Time remains private.")
                 }
