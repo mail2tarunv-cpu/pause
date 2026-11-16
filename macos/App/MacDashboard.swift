@@ -141,14 +141,14 @@ struct MacDashboard: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Label(activity.isWebsiteConnected ? "Browser paired" : "Browser not paired",
-                              systemImage: "globe")
+                              systemImage: activity.isWebsiteConnected ? "checkmark.circle.fill" : "globe")
                         Spacer()
                         Button("Set Up") { selection = .browser }
                     }
                     Divider()
                     HStack {
                         Label(cloud.authenticated ? "Cloud account connected" : "Cloud disconnected",
-                              systemImage: "icloud")
+                              systemImage: cloud.authenticated ? "checkmark.icloud" : "icloud")
                         Spacer()
                         Button("Manage") { selection = .cloud }
                     }
