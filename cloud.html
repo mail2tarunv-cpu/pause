@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light"><title>PAUSE / Cloud controller</title>
+<style>
+:root{font:14px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;background:#f4f3ee;color:#252925}*{box-sizing:border-box}
+body{margin:0;min-height:100vh}.mast{padding:26px clamp(22px,5vw,75px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ddded6}
+.logo{font-size:15px;letter-spacing:.27em;font-weight:750}.eyebrow{font:10px ui-monospace,monospace;letter-spacing:.14em;color:#999c90;text-transform:uppercase}
+main{display:grid;grid-template-columns:minmax(300px,520px) minmax(330px,1fr);gap:clamp(24px,6vw,90px);max-width:1450px;padding:55px clamp(22px,6vw,85px);margin:auto}
+h1{font-size:clamp(34px,4vw,59px);letter-spacing:-.065em;font-weight:500;line-height:1.04;margin:15px 0}
+.sub{color:#777e74;line-height:1.75;margin-bottom:32px;max-width:420px;font-size:13px}
+.panel{border-top:1px solid #d5d6cc;padding:21px 0}.section{font:11px ui-monospace,monospace;letter-spacing:.1em;color:#666f63;margin-bottom:15px;font-weight:bold}
+label{display:block;font-size:11px;font-weight:600;margin:12px 0 7px}input,textarea{width:100%;background:#fffefa;border:1px solid #d8d9d0;border-radius:9px;padding:12px 13px;font:inherit;color:#262925;outline-offset:3px}textarea{height:140px;resize:vertical;font:18px/1.5 ui-monospace,monospace;letter-spacing:.04em;text-transform:uppercase}
+.row{display:flex;gap:9px;align-items:center}.row>*{min-width:0;flex:1}button{background:#272c27;color:#fcfaf6;padding:12px 18px;border:1px solid #272c27;border-radius:9px;font:12px inherit;cursor:pointer;font-weight:600;white-space:nowrap}
+button:hover{filter:brightness(1.18)}button.secondary{background:transparent;color:#303a30;border-color:#d1d5cd}button:disabled{opacity:.45;cursor:not-allowed}.hint{font-size:11px;color:#92978c;line-height:1.6}
+#status{min-height:20px;color:#45664b;font-size:12px;margin:12px 0}#status.error{color:#b65c52}.hidden{display:none!important}
+.display{position:sticky;top:32px;align-self:start}.frame{background:#161918;border-radius:10px;padding:19px;box-shadow:0 30px 65px #1218133d}
+.board{display:grid;grid-template-columns:repeat(22,minmax(0,1fr));gap:2px}.tile{aspect-ratio:.8;display:grid;place-items:center;overflow:hidden;background:linear-gradient(#282b29 0 48%,#101111 49% 51%,#292c2a 52%);border-radius:1px;color:#f4f3ed;font:clamp(7px,.9vw,14px) ui-monospace,monospace}
+.meta{display:flex;justify-content:space-between;margin:18px 0;color:#91968c;font-size:10px;letter-spacing:.08em}.stack{margin-top:35px;background:#fcfbf7;border-radius:16px;padding:24px}h3{font-size:16px;letter-spacing:-.025em}
+.metric{display:flex;padding:10px 0;border-top:1px solid #e5e5df;justify-content:space-between;font-size:12px;color:#686e65}.metric strong{color:#252925}#connectForm{margin-bottom:15px}.set{margin-top:18px}
+@media(max-width:840px){main{grid-template-columns:1fr}.display{position:static;order:-1}.tile{font-size:clamp(6px,1.6vw,13px)}.mast{padding:19px 22px}main{padding-top:26px}}
+</style></head>
+<body>
+<header class="mast"><span class="logo">PAUSE <span class="eyebrow">/ REMOTE</span></span><span class="eyebrow">YOUR ATTENTION, YOUR RULES</span></header>
+<main>
+<section>
+<div class="eyebrow">A quiet controller for a physical idea</div>
+<h1>Less screen.<br>More life.</h1>
+<p class="sub">Send a message to your Vestaboard from anywhere. Signed-in devices share just board messages and optional daily usage categories.</p>
+<div id="setup" class="panel">
+ <div class="section">01 / Connect a private PAUSE cloud</div>
+ <p class="hint">Use a dedicated Supabase project with the PAUSE schema installed. The project URL and publishable key are public configuration, never secret keys.</p>
+ <label for="url">SUPABASE PROJECT URL</label><input id="url" autocomplete="url" placeholder="https://your-project.supabase.co">
+ <label for="key">PUBLIC PUBLISHABLE KEY</label><input id="key" autocomplete="off" placeholder="sb_publishable_…">
+ <button id="saveConfig" class="set">Save connection</button>
+</div>
+<div id="connectForm" class="panel">
+ <div class="section">02 / Private account</div>
+ <div class="row"><div><label for="email">EMAIL</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div><div><label for="password">PASSWORD</label><input id="password" type="password" autocomplete="current-password" placeholder="Password"></div></div>
+ <div class="row set"><button id="signIn">Sign in</button><button id="signUp" class="secondary">Create account</button></div>
+ <p class="hint">Email verification may be required for new accounts. Sign in with the same account on each device. Login tokens last only for this browser tab.</p>
+</div>
+<div id="ready" class="hidden">
+ <div class="panel"><div class="section">02 / Compose a message</div>
+   <label for="message">YOUR BOARD MESSAGE</label>
+   <textarea id="message" maxlength="280" spellcheck="false">MAKE A LITTLE SPACE
+FOR WHAT MATTERS</textarea>
+   <p class="hint" id="count">0 / 280</p>
+   <div class="row"><button id="send">Send to Vestaboard</button><button id="clear" class="secondary">Clear</button></div>
+ </div>
+ <div class="panel"><div class="section">03 / Test an attention nudge</div>
+   <div class="row"><button class="secondary" data-nudge="social">Social</button><button class="secondary" data-nudge="creative">Creative</button><button class="secondary" data-nudge="entertainment">Entertainment</button></div>
+   <p class="hint">These are manual test events, not measured Screen Time.</p>
+ </div>
+ <div class="panel"><div class="section">ACCOUNT</div><div class="row"><span id="user" class="hint"></span><button id="signOut" class="secondary">Sign out</button></div></div>
+</div>
+<div id="status" role="status" aria-live="polite"></div>
+</section>
+<section class="display">
+ <div class="eyebrow">LIVE BOARD PREVIEW / 6 × 22</div>
+ <div class="frame"><div id="board" class="board" aria-label="Split-flap preview"></div></div>
+ <div class="meta"><span>132 TILES</span><span id="boardUpdated">NO MESSAGE SYNCED</span></div>
+ <div class="stack">
+   <div class="section">OPTIONAL SYNCED MAC ACTIVITY</div>
+   <h3>How your attention was spent</h3>
+   <p class="hint">Category-only totals from the Mac, when consented to. Detailed app/site records remain on the Mac.</p>
+   <div id="usage"><div class="metric">Not connected yet</div></div>
+   <div class="section" style="margin-top:22px">PAIRED DEVICES</div><div id="devices" class="hint">None connected</div>
+ </div>
+</section>
+</main>
+<script src="cloud/client.js"></script><script src="cloud/controller.js"></script>
+</body></html>
