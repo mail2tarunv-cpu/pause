@@ -23,8 +23,7 @@
           !(hostname.endsWith(".supabase.co") || hostname.endsWith(".supabase.in"))) {
         throw Error("Use your project's HTTPS Supabase URL.");
       }
-      if (!/^sb_publishable_[a-zA-Z0-9_-]+$/.test(publishableKey) &&
-          !/^eyJ[a-zA-Z0-9_.-]+$/.test(publishableKey)) {
+      if (!/^sb_publishable_[a-zA-Z0-9_-]+$/.test(publishableKey)) {
         throw Error("Use the project's public publishable key (never a secret key).");
       }
       this.config = { url: parsed.origin, key: publishableKey };
