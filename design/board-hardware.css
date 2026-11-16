@@ -196,6 +196,36 @@ body.pause-board-page {
   text-shadow: 0 1px 1px #000a;
   transform: scaleX(.85);
 }
+/* Hardware lettering is painted once across the split; the mechanical
+   front-half glyphs remain available only while tiles actively flip. */
+.flap-grid .tile .printed-glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #f1f0ee;
+  font-family: "DM Mono", ui-monospace, monospace !important;
+  font-weight: 500 !important;
+  font-size: clamp(7px, 1.65vw, 24px) !important;
+  line-height: 1;
+  letter-spacing: -.06em;
+  text-shadow: 0 1px 1px #0009;
+  transform: scaleX(.86);
+  z-index: 7;
+  pointer-events: none;
+}
+.flap-grid .tile:not(.flipping) .half .glyph { opacity: 0; }
+.flap-grid .tile.flipping .printed-glyph { opacity: 0; }
+.flap-grid .tile[class*="color-"]:not(.color-none) .printed-glyph {
+  color: transparent !important;
+}
+@media (max-width: 850px) {
+  .flap-grid .tile .printed-glyph { font-size: clamp(5px, 1.55vw, 13px) !important; }
+}
+@media (max-width: 520px) {
+  .flap-grid .tile .printed-glyph { font-size: clamp(4px, 1.45vw, 7px) !important; }
+}
+
 /* Solid acrylic color flaps have slightly different shades in top and bottom
    halves, rather than flat CSS blocks floating outside the board. */
 .flap-grid .tile.color-red .upper   { background: #fa3030 !important; }
