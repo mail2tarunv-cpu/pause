@@ -12,6 +12,10 @@ on:
       - ".github/workflows/sf-symbols.yml"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sf-symbols:
     runs-on: macos-15
