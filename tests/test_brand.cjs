@@ -22,7 +22,13 @@ for (const name of ["index.html", "controller.html", "cloud.html"]) {
   assert.ok(html.includes("design/pause-theme.css"), name + " missing shared theme");
   assert.ok(html.includes("Space+Grotesk"), name + " missing heading font");
   assert.ok(html.includes("DM+Mono"), name + " missing body font");
-  assert.ok(html.includes("pause-shape-strip"), name + " missing supporting shapes");
+  if(name==="index.html") {
+    assert.ok(html.includes("design/board-hardware.css"),
+      "The standalone board must use the hardware-first display stylesheet.");
+  } else {
+    assert.ok(html.includes("pause-shape-strip"),
+      name + " missing supporting shapes");
+  }
 }
 const tokens = load("design/pause-theme.css");
 for (const token of [
