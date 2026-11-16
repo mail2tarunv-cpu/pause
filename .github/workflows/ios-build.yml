@@ -8,6 +8,10 @@ on:
       - ".github/workflows/ios-build.yml"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ios-build:
     runs-on: macos-15
