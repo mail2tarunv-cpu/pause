@@ -18,7 +18,7 @@ struct PAUSEMacApp: App {
         }
         .defaultSize(width: 970, height: 750)
 
-        MenuBarExtra("PAUSE", systemImage: "circle.dotted.circle") {
+        MenuBarExtra("PAUSE", systemImage: "circle.dotted") {
             Button {
                 openWindow(id: "main")
                 NSApp.activate(ignoringOtherApps: true)
