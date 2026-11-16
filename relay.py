@@ -76,7 +76,7 @@ class Handler(LocalActivityHandler):
         if not self.valid_host():
             return
         path = urlparse(self.path).path
-        if path in ("/controller", "/controller.html", "/remote.js", "/cloud/client.js", "/cloud/board-receiver.js", "/design/pause-theme.css"):
+        if path in ("/controller", "/controller.html", "/remote.js", "/cloud/client.js", "/cloud/board-receiver.js", "/design/pause-theme.css", "/design/board-hardware.css"):
             filename = "controller.html" if path == "/controller" else path.lstrip("/")
             data = (ROOT / filename).read_bytes()
             self.send_response(200)
