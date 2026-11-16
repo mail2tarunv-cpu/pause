@@ -44,6 +44,7 @@ for(const markup of [local,cloud]){
  assert.match(markup,/design\/board-hardware\.css/);
  assert.match(markup,/class="board-wordmark"/);
 }
+assert.match(load("relay.py"),/\/design\/board-hardware\.css/);
 assert.match(local,/dataset\.color/);
 assert.match(cloudJS,/dataset\.color/);
 assert.match(ios,/width \/ 1\.865/);
