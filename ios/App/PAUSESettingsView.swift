@@ -9,6 +9,13 @@ struct PAUSESettingsView: View {
     var body: some View {
         Form {
             Section {
+                PAUSEIntro(title: "Your attention stays yours.",
+                           subtitle: "Decide what PAUSE can see, save, and share.",
+                           symbol: "lock.shield")
+            }
+            .listRowBackground(Color.clear)
+
+            Section {
                 PAUSEInfoRow(
                     symbol: "hand.raised",
                     title: "Your data stays yours",
