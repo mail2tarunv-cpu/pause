@@ -28,7 +28,7 @@ struct PAUSEBoardView: View {
                         Label("LIVE PREVIEW", systemImage: "square.grid.3x3.fill")
                             .font(PAUSEType.body(.caption2, strong: true))
                             .tracking(1)
-                            .foregroundStyle(.white.opacity(0.65))
+                            .foregroundStyle(PAUSEPalette.secondary)
                         Spacer()
                         Text("6 × 22")
                             .font(PAUSEType.body(.caption))
@@ -39,11 +39,11 @@ struct PAUSEBoardView: View {
                          "Message exceeds six rows. Shorten it to send." :
                          "Your message, exactly as it fits on the board.")
                         .font(PAUSEType.body(.caption))
-                        .foregroundStyle(boardLayout.overflow ? .orange : .white.opacity(0.65))
+                        .foregroundStyle(boardLayout.overflow ? PAUSEPalette.orange : PAUSEPalette.secondary)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(PAUSEPalette.board, in: RoundedRectangle(cornerRadius: 17))
+                .background(PAUSEPalette.surface, in: RoundedRectangle(cornerRadius: 17))
                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                 .listRowBackground(Color.clear)
             }
@@ -195,39 +195,104 @@ struct PAUSEBoardLayout {
     }
 }
 
+/// A miniaturized hardware view, not a generic grid of black cards.
+/// Mechanical housing geometry is shared with the web board: ~1.865:1,
+/// six rows, 22 recessed wells, printed glyphs and physical flap seams.
 struct PAUSEFlapPreview: View {
     let message: String
 
+    private func finish(_ glyph: String) -> [Color] {
+        switch glyph {
+        case "🟥": return [Color(red: 0.98, green: 0.19, blue: 0.19),
+                          Color(red: 0.83, green: 0.12, blue: 0.15)]
+        case "🟧": return [Color(red: 1.00, green: 0.51, blue: 0.11),
+                          Color(red: 0.90, green: 0.41, blue: 0.07)]
+        case "🟨": return [Color(red: 1.00, green: 0.80, blue: 0.13),
+                          Color(red: 0.92, green: 0.71, blue: 0.11)]
+        case "🟩": return [Color(red: 0.10, green: 0.68, blue: 0.28),
+                          Color(red: 0.07, green: 0.54, blue: 0.23)]
+        case "🟦": return [Color(red: 0.00, green: 0.62, blue: 0.93),
+                          Color(red: 0.03, green: 0.46, blue: 0.80)]
+        case "🟪": return [Color(red: 0.66, green: 0.18, blue: 0.77),
+                          Color(red: 0.55, green: 0.13, blue: 0.62)]
+        default: return [Color(white: 0.18), Color(white: 0.125)]
+        }
+    }
+
     var body: some View {
         GeometryReader { proxy in
-            let gap: CGFloat = 2
-            let cell = max(5, (proxy.size.width - 21 * gap) / 22)
+            let width = proxy.size.width
+            let height = width / 1.865
+            let innerWidth = width * 0.86
+            let gap = max(1.3, width * 0.0055)
+            let rowGap = max(2.2, width * 0.0095)
+            let cellWidth = max(2, (innerWidth - 21 * gap) / 22)
+            let cellHeight = cellWidth / 0.625
             let tiles = PAUSEBoardLayout(message: message).tiles
 
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: gap), count: 22),
-                spacing: 3
-            ) {
-                ForEach(tiles.indices, id: \.self) { index in
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 1.5)
-                            .fill(Color(white: 0.19))
-                        Rectangle()
-                            .fill(.black.opacity(0.55))
-                            .frame(height: 1)
-                        Text(tiles[index])
-                            .font(.custom("DMMono-Medium", size: max(7, cell * 0.60)))
+            ZStack {
+                Rectangle()
+                    .fill(LinearGradient(
+                        colors: [Color(white: 0.16), Color(white: 0.075),
+                                 Color(white: 0.15)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                Rectangle()
+                    .strokeBorder(Color.white.opacity(0.13), lineWidth: 1)
+                    .padding(3)
 
-                            .foregroundStyle(.white.opacity(0.94))
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(1)
+                LazyVGrid(columns: Array(
+                    repeating: GridItem(.fixed(cellWidth), spacing: gap),
+                    count: 22
+                ), spacing: rowGap) {
+                    ForEach(tiles.indices, id: \.self) { index in
+                        let glyph = tiles[index]
+                        let colors = finish(glyph)
+                        ZStack {
+                            LinearGradient(
+                                colors: colors,
+                                startPoint: .top, endPoint: .bottom
+                            )
+                            Rectangle()
+                                .fill(Color.black.opacity(0.8))
+                                .frame(height: max(1, width * 0.0015))
+                            if !["🟥","🟧","🟨","🟩","🟦","🟪"].contains(glyph) {
+                                Text(glyph)
+                                    .font(.custom(
+                                        "DMMono-Medium",
+                                        size: max(4, cellWidth * 0.63)
+                                    ))
+                                    .minimumScaleFactor(0.55)
+                                    .lineLimit(1)
+                                    .foregroundStyle(Color(white: 0.94))
+                            }
+                        }
+                        .frame(width: cellWidth, height: cellHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: 1))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 1)
+                                .strokeBorder(.black.opacity(0.65), lineWidth: 0.7)
+                        }
                     }
-                    .frame(height: cell * 1.24)
                 }
+                .frame(width: innerWidth)
+                .position(x: width / 2, y: height * 0.488)
+
+                Text("PAUSE")
+                    .font(.custom("SpaceGrotesk-Bold", size: max(5, width * 0.013)))
+                    .tracking(2)
+                    .foregroundStyle(Color.black.opacity(0.58))
+                    .position(x: width / 2, y: height * 0.946)
             }
+            .frame(width: width, height: height)
+            .overlay {
+                Rectangle()
+                    .strokeBorder(Color.black.opacity(0.85), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.22), radius: 12, x: 8, y: 12)
         }
-        .frame(height: 132)
+        .aspectRatio(1.865, contentMode: .fit)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Split-flap board preview: \(message)")
+        .accessibilityLabel("Physical split-flap board preview: \(message)")
     }
 }
