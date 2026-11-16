@@ -24,6 +24,13 @@ jobs:
         run: |
           node --check v2.js
           node --check remote.js
+          node --check browser-extension/domain.js
+          node --check browser-extension/background.js
+          node --check browser-extension/popup.js
+          node --check cloud/client.js
+          node --check cloud/controller.js
+          node --check cloud/board-receiver.js
+          node tests/test_extension.cjs
           python - <<'PY'
           from pathlib import Path
           import re
@@ -37,7 +44,7 @@ jobs:
           python - <<'PY'
           import plistlib
           from pathlib import Path
-          for item in Path('ios').rglob('*.plist'):
+          for item in list(Path('ios').rglob('*.plist')) + list(Path('macos').rglob('*.plist')):
               with item.open('rb') as f:
                   plistlib.load(f)
               print("Validated", item)
