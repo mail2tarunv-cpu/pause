@@ -106,6 +106,17 @@ private struct TriangleShape: Shape {
     }
 }
 
+struct PAUSESectionHeading: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(PAUSEType.heading(.subheadline))
+            .textCase(nil)
+            .foregroundStyle(PAUSEPalette.secondary)
+    }
+}
+
 struct PAUSEIntro: View {
     let title: String
     let subtitle: String
