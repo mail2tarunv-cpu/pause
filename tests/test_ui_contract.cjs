@@ -13,6 +13,10 @@ const report = load("ios/Report/PAUSEReportExtension.swift");
 const mac = load("macos/App/MacDashboard.swift");
 const macApp = load("macos/App/PAUSEMacApp.swift");
 const browser = load("browser-extension/popup.css");
+const iconGenerator = load("scripts/generate_app_icons.swift");
+const iosIcon = JSON.parse(load("ios/App/Assets.xcassets/AppIcon.appiconset/Contents.json"));
+const macIcon = JSON.parse(load("macos/App/Assets.xcassets/AppIcon.appiconset/Contents.json"));
+const extensionManifest = JSON.parse(load("browser-extension/manifest.json"));
 
 assert.match(app, /TabView/);
 assert.equal((app.match(/NavigationStack/g) || []).length, 4,
@@ -56,4 +60,15 @@ assert.match(browser, /prefers-color-scheme: dark/);
 assert.match(browser, /focus-visible/);
 assert.match(browser, /prefers-reduced-motion: reduce/);
 
-console.log("PAUSE UI structural audit passed: iPhone, Mac, Screen Time and browser popup.");
+assert.match(iconGenerator, /two vertical columns of three split-flap tiles/);
+assert.equal(iosIcon.images.length, 1);
+assert.equal(iosIcon.images[0].filename, "AppIcon.png");
+assert.equal(macIcon.images.length, 10);
+assert.equal(extensionManifest.icons["48"], "icon48.png");
+assert.equal(extensionManifest.icons["128"], "icon128.png");
+assert.equal(extensionManifest.action.default_icon["48"], "icon48.png");
+assert.match(load("ios/project.yml"), /ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon/);
+assert.match(load("macos/project.yml"), /ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon/);
+assert.match(app, /symbolRenderingMode/);
+assert.match(macApp, /symbolRenderingMode/);
+console.log("PAUSE UI structural audit passed: iPhone, Mac, SF Symbols and branded app icons.");
