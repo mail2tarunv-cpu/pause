@@ -13,6 +13,7 @@ git clone https://github.com/mail2tarunv-cpu/pause.git
 cd pause
 brew install xcodegen
 swift scripts/generate_app_icons.swift
+bash scripts/prepare_fonts.sh
 cd macos
 xcodegen generate
 open PAUSEMac.xcodeproj
