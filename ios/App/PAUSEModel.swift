@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Combine
 import FamilyControls
 import DeviceActivity
@@ -30,6 +31,14 @@ enum PAUSECategory: String, CaseIterable, Identifiable {
         case .social: return "A direct check-in to interrupt endless scrolling"
         case .creative: return "A gentle stretch or rest reminder"
         case .entertainment: return "An invitation to choose whether to continue"
+        }
+    }
+
+    var accent: Color {
+        switch self {
+        case .social: return PAUSEPalette.pink
+        case .creative: return PAUSEPalette.cyan
+        case .entertainment: return PAUSEPalette.orange
         }
     }
 
