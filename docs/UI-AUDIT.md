@@ -42,6 +42,16 @@ Last review: November 16, 2026
 - Uses system type and control sizing, accessible keyboard focus, `prefers-color-scheme: dark`, and Reduced Motion.
 - It remains an extension popup, not a SwiftUI app; this is an approximate system-consistent web design.
 
+## SF Symbols and original PAUSE launcher icon
+
+- All icons inside the native iPhone/Mac UI use Apple's SF Symbols through `Label(systemImage:)` or `Image(systemName:)`.
+- Shared categories keep the same icons across screens (social: `bubble.left.and.bubble.right`, creative: `paintbrush.pointed`, entertainment: `play.rectangle`).
+- Actions use native semantic symbols: `paperplane.fill` for sending, `arrow.clockwise` for rotation/refresh, `eye`/`eye.slash` to show/hide pairing credentials, and `doc.on.doc` to copy.
+- The Mac's 48-character secret code is displayed in a separate wrapping row so its controls aren't crushed at narrow window widths.
+- PAUSE's launcher mark is an original grid of split-flap tiles forming a pause symbol, drawn by `scripts/generate_app_icons.swift`. Xcode asset catalogs exist for iPhone and Mac. The Chrome popup uses a generated matching toolbar icon; the rest of its web UI does not embed or redistribute Apple SF Symbol assets.
+- `.github/workflows/sf-symbols.yml` checks that every *collected* native identifier resolves with macOS AppKit. iOS minimum-version rendering and actual device screenshots still need manual checks.
+- One muted accent with system-adaptive colors; no forced iPhone Light Mode.
+
 ## UI quality test pass
 
 Structural regression checks run in CI:
