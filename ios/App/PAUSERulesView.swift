@@ -54,7 +54,7 @@ struct PAUSERulesView: View {
                         Label("Choose apps and sites", systemImage: "square.grid.2x2")
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.caption)
+                            .font(PAUSEType.body(.caption))
                             .foregroundStyle(.tertiary)
                     }
                 }
@@ -95,9 +95,9 @@ struct PAUSERulesView: View {
                 Label {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(model.category.title + " reminder")
-                            .font(.body.weight(.medium))
+                            .font(PAUSEType.body(.body, strong: true))
                         Text(model.category.detail)
-                            .font(.subheadline)
+                            .font(PAUSEType.body(.subheadline))
                             .foregroundStyle(.secondary)
                     }
                 } icon: {
@@ -143,8 +143,10 @@ struct PAUSERulesView: View {
             }.listRowBackground(Color.clear)
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(PAUSEPalette.background)
         .navigationTitle("Rules")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .familyActivityPicker(isPresented: $choosingApps, selection: $model.selection)
         .onChange(of: model.selection) { _, _ in model.saveSelection() }
     }
