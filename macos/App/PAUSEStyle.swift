@@ -14,7 +14,7 @@ enum PAUSEMacFonts {
                 NSLog("PAUSE font missing: %@", family)
                 continue
             }
-            CTFontManagerRegisterFontsForURL(url, .process, nil)
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
         }
     }
 }
