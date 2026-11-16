@@ -1,0 +1,32 @@
+name: Build PAUSE for Mac
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "macos/**"
+      - ".github/workflows/macos-build.yml"
+  workflow_dispatch:
+
+jobs:
+  macos-build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate macOS Xcode project
+        run: |
+          cd macos
+          xcodegen generate
+      - name: Compile native Mac app without code signing
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project macos/PAUSEMac.xcodeproj \
+            -scheme PAUSEMac \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee /tmp/pause-macos-build.log | tail -100
