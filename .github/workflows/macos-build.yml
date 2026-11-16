@@ -6,6 +6,7 @@ on:
     paths:
       - "macos/**"
       - ".github/workflows/macos-build.yml"
+      - "scripts/prepare_fonts.sh"
   workflow_dispatch:
 
 concurrency:
@@ -22,6 +23,8 @@ jobs:
         run: brew install xcodegen
       - name: Render PAUSE launcher icon assets
         run: swift scripts/generate_app_icons.swift
+      - name: Prepare licensed fonts
+        run: bash scripts/prepare_fonts.sh
       - name: Generate macOS Xcode project
         run: |
           cd macos
