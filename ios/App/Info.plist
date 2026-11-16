@@ -9,6 +9,7 @@
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.3</string>
 <key>CFBundleVersion</key><string>1</string>
+<key>UIAppFonts</key><array><string>SpaceGrotesk-Regular.ttf</string><string>SpaceGrotesk-Medium.ttf</string><string>SpaceGrotesk-Bold.ttf</string><string>DMMono-Regular.ttf</string><string>DMMono-Medium.ttf</string></array>
 <key>LSRequiresIPhoneOS</key><true/>
 <key>NSLocalNetworkUsageDescription</key><string>Send user-approved attention nudges to your PAUSE board on your Wi-Fi.</string>
 <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
