@@ -3,6 +3,7 @@ import FamilyControls
 
 struct PAUSESettingsView: View {
     @ObservedObject var model: PAUSEModel
+    @ObservedObject private var cloud = PAUSECloud.shared
     @State private var showClearConfirmation = false
     @State private var showDisconnectConfirmation = false
 
@@ -91,8 +92,55 @@ struct PAUSESettingsView: View {
                 .buttonStyle(PAUSEButton(filled: false))
             }
 
+            PAUSECard {
+                HStack {
+                    PAUSEKicker(text: "04 / Cross-device sync")
+                    Spacer()
+                    PAUSEStatusPill(text: cloud.signedIn ? "Signed in" : "Optional", positive: cloud.signedIn)
+                }
+                Text("Sync your check-ins, not your Screen Time.")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Create a separate PAUSE cloud project and use the same account on iPhone, Mac and your Vestaboard. Only generic threshold events leave the iPhone.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(PAUSEPalette.secondary)
+                TextField("https://your-project.supabase.co", text: $cloud.projectURL)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                    .pauseField()
+                TextField("Public project key", text: $cloud.publishableKey)
+                    .textInputAutocapitalization(.never)
+                    .pauseField()
+                if !cloud.signedIn {
+                    TextField("Email", text: $cloud.email)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+                        .pauseField()
+                    SecureField("Password", text: $cloud.password)
+                        .pauseField()
+                    Button("Sign in to PAUSE cloud") {
+                        Task { await cloud.signIn() }
+                    }.buttonStyle(PAUSEButton())
+                } else {
+                    Toggle(isOn: Binding(
+                        get: { cloud.enabled },
+                        set: { cloud.setEnabled($0) }
+                    )) {
+                        Text("Share generic threshold events")
+                            .font(.system(size: 13, weight: .semibold))
+                    }.tint(PAUSEPalette.ink)
+                    Button("Sync now") {
+                        Task { await cloud.syncLocalEvents() }
+                    }.buttonStyle(PAUSEButton(filled: false))
+                    Button("Sign out of cloud") { cloud.signOut() }
+                        .buttonStyle(PAUSEButton(filled: false))
+                }
+                Text(cloud.status)
+                    .font(.system(size: 11))
+                    .foregroundStyle(PAUSEPalette.secondary)
+            }
+
             PAUSECard(color: PAUSEPalette.sage.opacity(0.6)) {
-                PAUSEKicker(text: "How this prototype works")
+                PAUSEKicker(text: "05 / How this prototype works")
                 privacyRow("Screen Time data", "Apple's reporting extension draws your charts. The main app does not receive raw app-by-app usage.")
                 privacyRow("Thresholds", "Your iPhone records a small local event when a selected daily limit is reached.")
                 privacyRow("Remote board", "Only when you pair a board, PAUSE attempts to send a generic nudge. The Mac bridge is optional.")
