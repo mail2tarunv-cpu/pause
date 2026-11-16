@@ -32,6 +32,7 @@ jobs:
           node --check cloud/board-receiver.js
           node tests/test_extension.cjs
           node tests/test_cloud.cjs
+          node tests/test_ui_contract.cjs
           python - <<'PY'
           from pathlib import Path
           import re
