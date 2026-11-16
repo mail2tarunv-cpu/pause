@@ -51,7 +51,7 @@ final class PAUSECloud: ObservableObject {
         authorized: Bool = true,
         prefer: String? = nil
     ) async throws -> Any {
-        guard let baseURL, (publishableKey.hasPrefix("sb_publishable_") || publishableKey.hasPrefix("eyJ")) else {
+        guard let baseURL, publishableKey.hasPrefix("sb_publishable_") else {
             throw CloudError.message("Enter your project URL and public key.")
         }
         let url = URL(string: baseURL + path)!
