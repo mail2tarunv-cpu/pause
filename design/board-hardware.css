@@ -1,0 +1,291 @@
+/* PAUSE / HARDWARE-TRUE SPLIT-FLAP DISPLAY
+ * Source of visual direction: user's photograph of a wall-mounted six-by-
+ * twenty-two physical board. Every visible color belongs to a flap, not to
+ * a floating confetti graphic. Keep 132 individual physical wells.
+ */
+
+/* The display page is a bright, quiet gallery. The board is the hero. */
+body.pause-board-page {
+  color-scheme: light;
+  --pause-bg: #f3f3f1;
+  --pause-ink: #181818;
+  --pause-muted: #686866;
+  --pause-border: #dededb;
+  background: #f3f3f1 !important;
+  background-image: radial-gradient(ellipse at 50% 31%, #ffffff 0, #f6f6f4 48%, #efefed 100%) !important;
+  color: #181818 !important;
+}
+.pause-board-page .app { min-height: 100dvh; }
+.pause-board-page .topbar { height: 68px; }
+.pause-board-page .topbar .brand { color: #161616 !important; }
+.pause-board-page .hero {
+  padding: 20px 34px 27px;
+  justify-content: center;
+  gap: 0;
+}
+.pause-board-page .hero > .pause-shape-strip { display: none !important; }
+.pause-board-page .hero > .eyebrow {
+  margin: 0 0 29px !important;
+  font-size: 10px;
+  color: #797977 !important;
+  letter-spacing: .17em;
+}
+.pause-board-page .footnote {
+  color: #747472 !important;
+  font-size: 10px;
+  letter-spacing: .09em !important;
+  margin-top: 26px;
+}
+.pause-board-page .bottom { padding-bottom: 24px; }
+.pause-board-page .caption { color: #666 !important; }
+
+.board-shell,
+.board-frame,
+.frame {
+  position: relative;
+  box-sizing: border-box;
+  aspect-ratio: 1.865;
+  border-radius: 2px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6.1% 6.85% 8.7% !important;
+  background: linear-gradient(145deg, #242526 0%, #141516 27%, #151617 72%, #262728 100%) !important;
+  border: 2px solid #090a0b !important;
+  box-shadow:
+    inset 0 1px 1px #65656555,
+    inset 0 -2px 3px #0009,
+    1px 1px 2px #0008,
+    20px 31px 27px -23px #0007,
+    30px 54px 53px -30px #0005 !important;
+  isolation: isolate;
+}
+.board-shell {
+  width: min(1020px, calc(100vw - 140px)) !important;
+  max-width: none;
+  flex: 0 0 auto;
+}
+.board-shell::before,
+.board-frame::before,
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #38393a;
+  border-radius: 0;
+  box-shadow: inset 0 0 1px #000a;
+  pointer-events: none;
+  z-index: 0;
+}
+.board-shell::after,
+.board-frame::after,
+.frame::after {
+  content: "";
+  position: absolute;
+  height: 1px;
+  left: 1.1%;
+  right: 1.1%;
+  bottom: 5.5%;
+  background: linear-gradient(90deg, transparent, #38393a, transparent);
+  opacity: .38;
+  pointer-events: none;
+}
+.board-wordmark {
+  position: absolute;
+  bottom: 2.7%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #080909;
+  text-shadow: 0 1px #4445;
+  font-family: var(--pause-heading);
+  letter-spacing: .31em;
+  font-size: clamp(6px, .74vw, 10px);
+  font-weight: 700;
+  pointer-events: none;
+}
+.flap-grid,
+.board-frame .board,
+.frame .board {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(22, minmax(0, 1fr));
+  column-gap: clamp(2px, .52vw, 8px);
+  row-gap: clamp(3px, .95vw, 14px);
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Deep wells around each individual split flap. */
+.flap-grid .tile,
+.board .tile {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: .625 !important;
+  border: 1px solid #0a0b0b !important;
+  border-radius: 1px !important;
+  overflow: hidden;
+  background: #1c1e1f !important;
+  box-shadow:
+    inset 0 1px 1px #3f414170,
+    inset 1px 0 2px #0007,
+    0 1px 1px #0009 !important;
+}
+.flap-grid .tile::before,
+.board .tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #0004, transparent 13%, transparent 85%, #0005);
+  pointer-events: none;
+  z-index: 6;
+}
+.flap-grid .tile .half {
+  position: absolute;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+  left: 0;
+  backface-visibility: hidden;
+}
+.flap-grid .tile .upper {
+  top: 0;
+  background: linear-gradient(180deg, #2b2d2e 0%, #242627 100%) !important;
+  box-shadow: inset 0 1px #5b5d5d35;
+}
+.flap-grid .tile .lower {
+  bottom: 0;
+  background: linear-gradient(180deg, #1e2021 0%, #252728 100%) !important;
+  box-shadow: inset 0 -1px #5153542d;
+}
+.flap-grid .tile .seam {
+  position: absolute;
+  top: calc(50% - 1px);
+  height: 2px;
+  left: 0;
+  right: 0;
+  background: #090909 !important;
+  box-shadow: 0 1px 0 #67696940;
+  z-index: 8;
+}
+.flap-grid .tile .hinge {
+  top: calc(50% - 3px);
+  height: 6px;
+  width: 2px;
+  background: #070808;
+  z-index: 9;
+}
+.flap-grid .tile .flip {
+  background: #292b2c !important;
+  box-shadow: 0 1px 2px #0009;
+}
+.flap-grid .tile .glyph {
+  font-family: "DM Mono", ui-monospace, monospace !important;
+  font-size: clamp(6px, 1.42vw, 21px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -.07em !important;
+  line-height: 1;
+  color: #ededeb !important;
+  text-shadow: 0 1px 1px #000a;
+  transform: scaleX(.85);
+}
+/* Solid acrylic color flaps have slightly different shades in top and bottom
+   halves, rather than flat CSS blocks floating outside the board. */
+.flap-grid .tile.color-red .upper   { background: #fa3030 !important; }
+.flap-grid .tile.color-red .lower   { background: #d51f25 !important; }
+.flap-grid .tile.color-orange .upper{ background: #ff821b !important; }
+.flap-grid .tile.color-orange .lower{ background: #e46a12 !important; }
+.flap-grid .tile.color-yellow .upper{ background: #ffcd21 !important; }
+.flap-grid .tile.color-yellow .lower{ background: #eab51d !important; }
+.flap-grid .tile.color-green .upper { background: #18ad48 !important; }
+.flap-grid .tile.color-green .lower { background: #10893b !important; }
+.flap-grid .tile.color-blue .upper  { background: #009eee !important; }
+.flap-grid .tile.color-blue .lower  { background: #0876ca !important; }
+.flap-grid .tile.color-violet .upper{ background: #a92fc4 !important; }
+.flap-grid .tile.color-violet .lower{ background: #8c239e !important; }
+.flap-grid .tile.color-white .upper { background: #e5e5e2 !important; }
+.flap-grid .tile.color-white .lower { background: #bfc0bd !important; }
+.flap-grid .tile[class*="color-"]:not(.color-none) .glyph { color: transparent !important; }
+
+/* Preview boards use single DOM characters, so draw the flap join in CSS. */
+.board .tile {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg,
+    #292b2c 0%, #292b2c 47.4%,
+    #0a0b0b 48.0%, #080909 51.2%,
+    #212324 52.0%, #242627 100%) !important;
+}
+.board .tile::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 1px);
+  height: 2px;
+  left: 0;
+  right: 0;
+  background: #070808;
+  box-shadow: 0 1px #5354554a;
+  z-index: 4;
+  pointer-events: none;
+}
+.board .tile b,
+.board .tile:not(:has(b)) {
+  font-family: "DM Mono", ui-monospace, monospace !important;
+  font-size: clamp(5px, .87vw, 13px) !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  letter-spacing: -.07em !important;
+  color: #ededeb !important;
+  text-shadow: 0 1px 1px #000b;
+}
+.board .tile b { position: relative; z-index: 2; transform: scaleX(.86); }
+.board .tile[data-color="red"]    { background: linear-gradient(#fa3030 0 48%, #0b0b0b 49% 51%, #d51f25 52%) !important; }
+.board .tile[data-color="orange"] { background: linear-gradient(#ff821b 0 48%, #0b0b0b 49% 51%, #e46a12 52%) !important; }
+.board .tile[data-color="yellow"] { background: linear-gradient(#ffcd21 0 48%, #0b0b0b 49% 51%, #eab51d 52%) !important; }
+.board .tile[data-color="green"]  { background: linear-gradient(#18ad48 0 48%, #0b0b0b 49% 51%, #10893b 52%) !important; }
+.board .tile[data-color="blue"]   { background: linear-gradient(#009eee 0 48%, #0b0b0b 49% 51%, #0876ca 52%) !important; }
+.board .tile[data-color="violet"] { background: linear-gradient(#a92fc4 0 48%, #0b0b0b 49% 51%, #8c239e 52%) !important; }
+.board .tile[data-color="white"]  { background: linear-gradient(#e5e5e2 0 48%, #0b0b0b 49% 51%, #bfc0bd 52%) !important; }
+
+.board-frame,
+.frame {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+/* Preserve modest contrast in the UI around the object. */
+.pause-board-page .dock button,
+.pause-board-page .minimal-button {
+  border-radius: 8px !important;
+}
+.pause-board-page .dock .primary {
+  background: #222425 !important;
+  border-color: #222425 !important;
+}
+.fullscreen .board-shell { width: min(1310px, 91vw) !important; max-height: 90vh; }
+@media (max-width: 850px) {
+  .pause-board-page .hero { padding: 14px 20px 32px; }
+  .board-shell { width: calc(100vw - 48px) !important; }
+  .flap-grid,.board-frame .board,.frame .board {
+    column-gap: clamp(1px, .52vw, 5px);
+    row-gap: clamp(2px, .93vw, 8px);
+  }
+  .flap-grid .tile .glyph { font-size: clamp(5px, 1.43vw, 12px) !important; }
+}
+@media (max-width: 520px) {
+  .pause-board-page .hero { padding-inline: 12px; }
+  .board-shell { width: calc(100vw - 28px) !important; border-width: 1px !important; }
+  .board-shell::before,.board-frame::before,.frame::before { inset: 3px; }
+  .board-wordmark { font-size: 5px; }
+  .flap-grid,.board-frame .board,.frame .board { column-gap: 1.5px; row-gap: 3px; }
+  .flap-grid .tile .glyph { font-size: clamp(4px, 1.45vw, 7px) !important; }
+  .board .tile b,.board .tile:not(:has(b)) { font-size: 4px !important; }
+  .pause-board-page .hero > .eyebrow { font-size: 9px; margin-bottom: 18px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile.flipping .flip { animation: none !important; }
+}
