@@ -54,7 +54,7 @@ struct PAUSEHomeView: View {
                 HStack(spacing: 12) {
                     Image(systemName: model.category.icon)
                         .font(PAUSEType.heading(.title3))
-                        .foregroundStyle(PAUSEPalette.tint)
+                        .foregroundStyle(model.category.accent)
                         .frame(width: 28)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 4) {
