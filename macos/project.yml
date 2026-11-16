@@ -13,6 +13,16 @@ targets:
     platform: macOS
     sources:
       - App
+      - path: ../assets/fonts/SpaceGrotesk-Regular.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/SpaceGrotesk-Medium.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/SpaceGrotesk-Bold.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/DMMono-Regular.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/DMMono-Medium.ttf
+        buildPhase: resources
     info:
       path: App/Info.plist
     settings:
