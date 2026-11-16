@@ -8,6 +8,10 @@ on:
       - ".github/workflows/macos-build.yml"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   macos-build:
     runs-on: macos-15
