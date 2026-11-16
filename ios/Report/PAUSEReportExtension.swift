@@ -67,9 +67,29 @@ struct PAUSEDailyScene: DeviceActivityReportScene {
     }
 }
 
+private enum PAUSEReportType {
+    static func body(_ style: Font.TextStyle = .body, strong: Bool = false) -> Font {
+        let size: CGFloat
+        switch style {
+        case .largeTitle: size = 36
+        case .title2: size = 24
+        case .headline: size = 17
+        case .subheadline: size = 14
+        case .caption: size = 11
+        default: size = 15
+        }
+        return .custom(strong ? "DMMono-Medium" : "DMMono-Regular",
+                       size: size, relativeTo: style)
+    }
+    static func heading(_ style: Font.TextStyle) -> Font {
+        let size: CGFloat = style == .largeTitle ? 36 : 18
+        return .custom("SpaceGrotesk-Bold", size: size, relativeTo: style)
+    }
+}
+
 struct PAUSEDailyReportView: View {
     let configuration: PAUSEReportConfiguration
-    private let accent = Color(red: 0.16, green: 0.42, blue: 0.44)
+    private let accent = Color(red: 0.05, green: 0.53, blue: 0.46)
 
     private func duration(_ seconds: TimeInterval) -> String {
         let minutes = Int(seconds / 60)
@@ -82,10 +102,10 @@ struct PAUSEDailyReportView: View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Total today")
-                        .font(.subheadline)
+                        .font(PAUSEReportType.body(.subheadline))
                         .foregroundStyle(.secondary)
                     Text(duration(configuration.total))
-                        .font(.system(.largeTitle, design: .rounded, weight: .semibold))
+                        .font(PAUSEReportType.heading(.largeTitle))
                         .monospacedDigit()
                         .foregroundStyle(.primary)
                         .minimumScaleFactor(0.8)
@@ -93,7 +113,7 @@ struct PAUSEDailyReportView: View {
                 }
                 Spacer()
                 Image(systemName: "chart.bar.xaxis")
-                    .font(.title2)
+                    .font(PAUSEReportType.heading(.title2))
                     .foregroundStyle(accent)
                     .accessibilityHidden(true)
             }
@@ -110,7 +130,7 @@ struct PAUSEDailyReportView: View {
                 if !configuration.categories.isEmpty {
                     Divider()
                     Text("Categories")
-                        .font(.headline)
+                        .font(PAUSEReportType.heading(.headline))
                     ForEach(configuration.categories) { entry in
                         usageRow(entry)
                     }
@@ -126,7 +146,7 @@ struct PAUSEDailyReportView: View {
                 }
             }
             Label("Rendered privately by iOS", systemImage: "lock.shield")
-                .font(.caption)
+                .font(PAUSEReportType.body(.caption))
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 8)
@@ -141,7 +161,7 @@ struct PAUSEDailyReportView: View {
                     .lineLimit(1)
                 Spacer(minLength: 6)
                 Text(duration(entry.duration))
-                    .font(.subheadline.monospacedDigit().weight(.medium))
+                    .font(PAUSEReportType.body(.subheadline, strong: true))
                     .foregroundStyle(.secondary)
             }
             ProgressView(value: entry.duration, total: max(configuration.total, 1))
