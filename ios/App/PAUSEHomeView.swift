@@ -4,6 +4,7 @@ import FamilyControls
 
 struct PAUSEHomeView: View {
     @ObservedObject var model: PAUSEModel
+    @ObservedObject private var cloud = PAUSECloud.shared
 
     private var todayInterval: DateInterval {
         Calendar.current.dateInterval(of: .day, for: Date()) ??
@@ -137,7 +138,37 @@ struct PAUSEHomeView: View {
                 }
             }
 
+            if cloud.enabled && cloud.signedIn {
+                VStack(alignment: .leading, spacing: 12) {
+                    PAUSEKicker(text: "04 / Synced Mac activity")
+                    PAUSECard {
+                        Text("Category totals from your Mac")
+                            .font(.system(size: 14, weight: .semibold))
+                        if cloud.macCategoryTotals.isEmpty {
+                            Text("Nothing synced yet. Enable private cloud sync in PAUSE for Mac.")
+                                .font(.system(size: 12))
+                                .foregroundStyle(PAUSEPalette.secondary)
+                        } else {
+                            ForEach(cloud.macCategoryTotals.keys.sorted(), id: \.self) { category in
+                                HStack {
+                                    Text(category.capitalized)
+                                    Spacer()
+                                    Text("\((cloud.macCategoryTotals[category] ?? 0) / 60)m")
+                                        .font(.system(.caption, design: .monospaced))
+                                }.font(.system(size: 12))
+                            }
+                        }
+                        Text("The iPhone's full Screen Time history is never uploaded.")
+                            .font(.system(size: 10))
+                            .foregroundStyle(PAUSEPalette.secondary)
+                    }
+                }
+            }
+
             PAUSEStatusNotice(text: model.status)
+        }
+        .task {
+            if cloud.enabled { await cloud.syncLocalEvents() }
         }
     }
 }
