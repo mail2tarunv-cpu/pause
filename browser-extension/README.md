@@ -5,7 +5,7 @@ A Manifest V3 extension for **Chrome and Chromium-based browsers**. It provides 
 ## Install
 
 1. Build/run [PAUSE for Mac](../macos/README.md).
-2. From the repository root run `swift scripts/generate_app_icons.swift` once to generate the shared PAUSE toolbar icon (requires Xcode/macOS). This populates the icon files referenced by `manifest.json`.
+2. From the repository root run `swift scripts/generate_app_icons.swift && bash scripts/prepare_fonts.sh` to create the shared toolbar icon and local Space Grotesk / DM Mono fonts. Chrome extensions cannot load remote font stylesheets under their CSP.
 3. In Chrome open `chrome://extensions/`.
 4. Enable **Developer mode**, click **Load unpacked**, and choose this `browser-extension/` folder.
 5. Click the extension icon. Copy the 48-character pairing token from PAUSE for Mac’s Browser Extension panel.
