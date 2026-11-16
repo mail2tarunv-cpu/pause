@@ -9,7 +9,6 @@ enum PAUSEPalette {
     static let ink = Color.primary
     static let secondary = Color.secondary
     static let line = Color(uiColor: .separator)
-    static let sage = Color(uiColor: .tertiarySystemFill)
     static let board = Color(red: 0.09, green: 0.10, blue: 0.10)
 }
 
