@@ -24,7 +24,7 @@ struct PAUSESettingsView: View {
             }
             .listRowBackground(Color.clear)
 
-            Section("Permissions") {
+            Section {
                 HStack {
                     Label("Screen Time", systemImage: "hourglass")
                     Spacer()
@@ -48,6 +48,8 @@ struct PAUSESettingsView: View {
                         Task { await model.requestNotifications() }
                     }
                 }
+            } header: {
+                PAUSESectionHeading(title: "Permissions")
             }
 
             Section {
@@ -67,7 +69,7 @@ struct PAUSESettingsView: View {
                 Text("PAUSE monitors only selected activity. It does not read your messages or block apps.")
             }
 
-            Section("Connected board") {
+            Section {
                 LabeledContent("Local board") {
                     Text(model.boardConnected ? "Paired" : "Not paired")
                         .foregroundStyle(.secondary)
@@ -76,6 +78,8 @@ struct PAUSESettingsView: View {
                     showDisconnectConfirmation = true
                 }
                 .disabled(model.boardAddress.isEmpty && model.boardKey.isEmpty)
+            } header: {
+                PAUSESectionHeading(title: "Connected board")
             }
 
             Section {
@@ -134,7 +138,7 @@ struct PAUSESettingsView: View {
                 Text("Clearing PAUSE events does not delete Apple's Screen Time history or previously synced cloud records.")
             }
 
-            Section("About") {
+            Section {
                 LabeledContent("App", value: "PAUSE")
                 LabeledContent("Version", value: "0.4")
                 PAUSEInfoRow(
@@ -142,6 +146,8 @@ struct PAUSESettingsView: View {
                     title: "Built for awareness",
                     explanation: "Reminders currently use rules and templates, not AI-generated advice."
                 )
+            } header: {
+                PAUSESectionHeading(title: "About")
             }
 
             Section {
