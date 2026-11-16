@@ -1,0 +1,25 @@
+name: Audit PAUSE SF Symbols
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - "macos/**"
+      - "scripts/audit_sf_symbols.cjs"
+      - "scripts/validate_sf_symbols.swift"
+      - ".github/workflows/sf-symbols.yml"
+  workflow_dispatch:
+
+jobs:
+  sf-symbols:
+    runs-on: macos-15
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect symbol identifiers from native SwiftUI screens
+        run: |
+          node scripts/audit_sf_symbols.cjs > /tmp/pause-sf-symbols.txt
+          cat /tmp/pause-sf-symbols.txt
+      - name: Verify each symbol resolves on Apple's system
+        run: swift scripts/validate_sf_symbols.swift /tmp/pause-sf-symbols.txt
