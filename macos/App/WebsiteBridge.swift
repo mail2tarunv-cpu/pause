@@ -48,13 +48,16 @@ final class WebsiteBridge {
             let header = String(request[..<separator.lowerBound])
             let lines = header.components(separatedBy: "\r\n")
             let first = lines.first ?? ""
-            let fields: [String: String] = Dictionary(uniqueKeysWithValues:
-                lines.dropFirst().compactMap { line -> (String, String)? in
-                    guard let index = line.firstIndex(of: ":") else { return nil }
-                    return (String(line[..<index]).lowercased(),
-                            String(line[line.index(after: index)...]).trimmingCharacters(in: .whitespaces))
+            var fields: [String: String] = [:]
+            for line in lines.dropFirst() {
+                guard let index = line.firstIndex(of: ":") else { continue }
+                let name = String(line[..<index]).lowercased()
+                // Ignore duplicate untrusted header names rather than crashing.
+                if fields[name] == nil {
+                    fields[name] = String(line[line.index(after: index)...])
+                        .trimmingCharacters(in: .whitespaces)
                 }
-            )
+            }
             let host = fields["host"] ?? ""
             let origin = fields["origin"] ?? ""
             let corsOrigin = self.isExtensionOrigin(origin) ? origin : nil
@@ -80,7 +83,7 @@ final class WebsiteBridge {
                 self.reply(connection, status: 400, origin: corsOrigin, body: #"{"error":"invalid length"}"#)
                 return
             }
-            let bodyOffset = combined.distance(from: combined.startIndex, to: separator.upperBound)
+            let bodyOffset = request[..<separator.upperBound].utf8.count
             let remaining = combined.count - bodyOffset
             guard remaining >= contentLength else {
                 if done { connection.cancel() }
