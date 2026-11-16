@@ -1,0 +1,207 @@
+/* PAUSE / EDITORIAL DESIGN SYSTEM v1
+ * References: black split-flap hardware and energetic typographic shapes.
+ * Body = DM Mono, headings = Space Grotesk. The board remains charcoal.
+ * Accent blocks are decorative; forms retain sufficient text contrast.
+ */
+:root {
+  color-scheme: light dark;
+  --pause-heading: "Space Grotesk", "Arial", sans-serif;
+  --pause-body: "DM Mono", "SFMono-Regular", monospace;
+  --pause-bg: #f7f7f5;
+  --pause-surface: #ffffff;
+  --pause-ink: #101012;
+  --pause-muted: #55575a;
+  --pause-border: #dcded9;
+  --pause-dark: #121214;
+  --pause-orange: #ff5e16;
+  --pause-yellow: #ffe208;
+  --pause-pink: #f350e7;
+  --pause-cyan: #13d1e2;
+  --pause-violet: #5951f9;
+  --pause-lime: #a4f45f;
+  --pause-green: #078b75;
+  --pause-action: #08796d;
+  --pause-action-ink: #ffffff;
+}
+html { background: var(--pause-bg); }
+body {
+  background: var(--pause-bg) !important;
+  color: var(--pause-ink) !important;
+  font-family: var(--pause-body) !important;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+:where(button, input, textarea, select, option, label, p, li, small, .sub, .hint) {
+  font-family: var(--pause-body) !important;
+}
+:where(h1,h2,h3,h4,.brand,.logo,.top strong,.panel-header h2,.attention-panel-head h2) {
+  font-family: var(--pause-heading) !important;
+  letter-spacing: -.035em;
+  line-height: 1.1;
+}
+:where(h1) { font-weight: 700 !important; line-height: 1.02 !important; letter-spacing: -.06em !important; }
+:where(h2,h3,.section-title) { font-weight: 600 !important; }
+:where(.section-label,.section,.eyebrow,.group-label,.header-meta,.badge,.footnote,.board-note,.meta,.count,.counter) {
+  font-family: var(--pause-body) !important;
+  letter-spacing: .04em;
+}
+:where(a) { color: var(--pause-action); text-underline-offset: 3px; }
+:where(button,input,textarea,select) { border-radius: 9px; }
+:where(button,input,textarea,select):focus-visible {
+  outline: 2px solid var(--pause-action) !important;
+  outline-offset: 3px;
+}
+::selection { background: var(--pause-cyan); color: #101012; }
+
+/* Replaces fixed warm grays with an editorial, bright paper surface. */
+:where(.topbar, header, .mast) { border-color: var(--pause-border) !important; }
+:where(.brand,.logo) { color: var(--pause-ink); font-weight: 700 !important; }
+:where(.brand span,.logo span,.header-meta,.caption,.footnote,.board-note,.display-caption,
+       .sub,.group-help,.hint,.notice,.counter,.small,.section,.section-label,.meta,.eyebrow) {
+  color: var(--pause-muted) !important;
+}
+:where(.panel,.attention-panel) {
+  background: var(--pause-bg) !important;
+  color: var(--pause-ink) !important;
+}
+:where(.status-card,.preset,.metric,.stack,.nudge-banner) {
+  background: var(--pause-surface) !important;
+  border-color: var(--pause-border) !important;
+  color: var(--pause-ink) !important;
+}
+:where(.section,.rule,.live-source) { border-color: var(--pause-border) !important; }
+:where(.field,.composer,.select,.attention-select,.app-row input,.row input,.row textarea) {
+  background: var(--pause-surface) !important;
+  color: var(--pause-ink) !important;
+  border-color: var(--pause-border) !important;
+}
+:where(.dock button,.minimal-button,.attention-trigger,.demo-actions button,
+       .soft-action,.button.secondary,.attention-switch button,.nudge-actions button) {
+  font-family: var(--pause-body) !important;
+  border-color: var(--pause-border) !important;
+  color: var(--pause-ink) !important;
+  background: var(--pause-surface) !important;
+}
+:where(.panel-primary,.dock .primary,.pair-row button,.button:not(.secondary),
+       .row button:not(.secondary),.nudge-actions button:first-child) {
+  color: var(--pause-action-ink) !important;
+  background: var(--pause-dark) !important;
+  border-color: var(--pause-dark) !important;
+  font-family: var(--pause-body) !important;
+  font-weight: 500;
+}
+:where(.panel-primary,.dock .primary,.pair-row button,.button:not(.secondary),
+       .row button:not(.secondary),.nudge-actions button:first-child):hover {
+  background: var(--pause-action) !important;
+  border-color: var(--pause-action) !important;
+}
+:where(.attention-switch) { background: var(--pause-border) !important; }
+:where(.attention-switch button[aria-pressed="true"]) {
+  background: var(--pause-surface) !important;
+  color: var(--pause-ink) !important;
+}
+:where(.rule input[type=range],.toggle input,.attention-panel input[type=range]) {
+  accent-color: var(--pause-action) !important;
+}
+:where(.attention-led.is-live,.dot.ok) { background: var(--pause-green) !important; }
+:where(.attention-led.is-demo,.dot) { background: var(--pause-yellow); }
+:where(.nudge-banner,.attention-toast) {
+  font-family: var(--pause-body) !important;
+}
+
+/* PAUSE-specific type: the split-flap lettering must remain monospaced.
+   Slightly smaller than the original condensed font to avoid clipped columns. */
+:where(.tile .glyph,.tile b,.tile) {
+  font-family: var(--pause-body) !important;
+  letter-spacing: -.055em !important;
+  font-weight: 500 !important;
+}
+.flap-grid .tile .glyph { font-size: clamp(8px, 2.15vw, 27px) !important; }
+.board .tile b { font-size: clamp(6px, 1.14vw, 17px) !important; }
+.board .tile { font-family: var(--pause-body) !important; }
+:where(.composer) { font-family: var(--pause-body) !important; letter-spacing: 0 !important; }
+.tile.color-red .half,.tile.color-red .flip { background: #fb4e44 !important; }
+.tile.color-orange .half,.tile.color-orange .flip { background: var(--pause-orange) !important; }
+.tile.color-yellow .half,.tile.color-yellow .flip { background: var(--pause-yellow) !important; }
+.tile.color-green .half,.tile.color-green .flip { background: var(--pause-green) !important; }
+.tile.color-blue .half,.tile.color-blue .flip { background: var(--pause-cyan) !important; }
+.tile.color-violet .half,.tile.color-violet .flip { background: var(--pause-violet) !important; }
+.tile.color-white .half,.tile.color-white .flip { background: #f7f7f5 !important; }
+
+/* Large type and a tiny supporting shape set from the user's reference. */
+.pause-shape-strip {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  height: 31px;
+  margin-bottom: 16px;
+  pointer-events: none;
+}
+.pause-shape-strip .quarter {
+  width: 29px; height: 29px; background: var(--pause-orange);
+  border-radius: 0 0 65% 0;
+}
+.pause-shape-strip .disc {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--pause-yellow);
+}
+.pause-shape-strip .triangle {
+  width: 28px; height: 28px;
+  background: var(--pause-pink);
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+.pause-shape-strip .wave {
+  display: flex; gap: 0;
+  height: 20px; align-items: center; margin-left: 3px;
+}
+.pause-shape-strip .wave i {
+  display: block; width: 12px; height: 20px;
+  border-radius: 50%; background: var(--pause-cyan); margin-left: -3px;
+}
+.pause-shape-strip .dot {
+  width: 13px; height: 13px; border-radius: 50%; background: var(--pause-violet);
+}
+.hero > .pause-shape-strip { margin: 0 0 12px; }
+.hero > .eyebrow { margin-bottom: 24px; }
+.topbar .brand, header .logo, .mast .logo { font-size: 17px; }
+.brand { letter-spacing: -.03em !important; }
+.brand span { font-family: var(--pause-body) !important; letter-spacing: .04em; }
+.panel-header h2,.attention-panel-head h2 { font-family: var(--pause-heading) !important; }
+
+/* Split-flap hardware remains the grounding dark element. */
+.board-shell,.board-frame,.frame { box-shadow: 0 30px 55px -24px rgba(0,0,0,.30) !important; }
+.board-shell .flap-grid,.board-frame .board { background: #0d0d0e; }
+
+/* Responsive type: avoid tiny mono copy on phones. */
+@media (max-width: 640px) {
+  :where(.sub,.description,.caption,.hint,.group-help) { font-size: 12px !important; }
+  .pause-shape-strip { transform: scale(.85); transform-origin: left center; }
+  .hero > .pause-shape-strip { transform-origin: center; }
+  .flap-grid .tile .glyph { font-size: clamp(7px,2.18vw,14px) !important; }
+  .board .tile b { font-size: clamp(6px,2.1vw,13px) !important; }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pause-bg: #151516;
+    --pause-surface: #252526;
+    --pause-ink: #f8f8f5;
+    --pause-muted: #b4b4b6;
+    --pause-border: #3a3a3e;
+    --pause-action: #75e3d2;
+    --pause-action-ink: #101012;
+  }
+  :where(.attention-switch) { background: #343437 !important; }
+  :where(.panel-primary,.dock .primary,.pair-row button,.button:not(.secondary),
+         .row button:not(.secondary),.nudge-actions button:first-child) {
+    color: #fff !important; background: #38383a !important;
+    border-color: #505054 !important;
+  }
+  :where(.panel-primary,.dock .primary,.pair-row button,.button:not(.secondary),
+         .row button:not(.secondary),.nudge-actions button:first-child):hover {
+    background: #08796d !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
