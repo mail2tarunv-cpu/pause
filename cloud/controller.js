@@ -15,13 +15,13 @@
   const colors = {'🟥':'red','🟧':'orange','🟨':'yellow','🟩':'green','🟦':'blue','🟪':'violet','⬜':'white'};
   function boardFormat(value) {
     const rows = [];
-    const cleaned=String(value||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\\-\\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ');
-    for (const line of cleaned.split('\\n')) {
+    const cleaned=String(value||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\-\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ');
+    for (const line of cleaned.split('\n')) {
       const chars=Array.from(line);
       if(chars.length===22 && chars.some(ch=>colors[ch])) { rows.push(line); continue; }
       if (!line.trim()) { rows.push(''); continue; }
       let current='';
-      for(const word of line.trim().split(/\\s+/)) {
+      for(const word of line.trim().split(/\s+/)) {
         const letters=Array.from(word);
         if(letters.length>22) {
           if(current) {rows.push(current);current='';}
