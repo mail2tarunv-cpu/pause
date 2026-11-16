@@ -3,233 +3,218 @@ import SwiftUI
 struct PAUSEBoardView: View {
     @ObservedObject var model: PAUSEModel
     @ObservedObject private var cloud = PAUSECloud.shared
+    @FocusState private var composing: Bool
+
+    private var boardLayout: PAUSEBoardLayout {
+        PAUSEBoardLayout(message: model.boardDraft)
+    }
+    private var canSend: Bool {
+        !model.boardDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !boardLayout.overflow && !model.isWorking
+    }
 
     var body: some View {
-        PAUSEPage {
-            PAUSEHeader(
-                eyebrow: "Your ambient display",
-                headline: "A thought,\nout in the open.",
-                description: "Compose a message on iPhone. Send it to your digital split-flap board whenever a paired board is available."
-            )
-
-            PAUSECard(color: PAUSEPalette.board) {
-                HStack {
-                    Text("PAUSE BOARD / PREVIEW")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .tracking(1.2)
-                    Spacer()
-                    Image(systemName: "circle.grid.3x3.fill")
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Label("LIVE PREVIEW", systemImage: "square.grid.3x3.fill")
+                            .font(.caption2.weight(.semibold))
+                            .tracking(1)
+                            .foregroundStyle(.white.opacity(0.65))
+                        Spacer()
+                        Text("6 × 22")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.white.opacity(0.65))
+                    }
+                    PAUSEFlapPreview(message: model.boardDraft)
+                    Text(boardLayout.overflow ?
+                         "Message exceeds six rows. Shorten it to send." :
+                         "Your message, exactly as it fits on the board.")
+                        .font(.caption)
+                        .foregroundStyle(boardLayout.overflow ? .orange : .white.opacity(0.65))
                 }
-                .foregroundStyle(Color.white.opacity(0.48))
-                PAUSEFlapPreview(message: model.boardDraft)
-                    .padding(.vertical, 12)
-                Text("6 rows × 22 characters")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.4))
-                    .frame(maxWidth: .infinity)
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PAUSEPalette.board, in: RoundedRectangle(cornerRadius: 17))
+                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                .listRowBackground(Color.clear)
             }
 
-            PAUSECard {
-                PAUSEKicker(text: "01 / Compose")
-                Text("Your message")
-                    .font(.system(size: 16, weight: .semibold))
+            Section {
                 TextEditor(text: $model.boardDraft)
-                    .font(.system(size: 16, weight: .medium, design: .monospaced))
-                    .foregroundStyle(PAUSEPalette.ink)
+                    .font(.body.monospaced())
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
                     .scrollContentBackground(.hidden)
-                    .padding(10)
-                    .frame(height: 125)
-                    .background(PAUSEPalette.background, in: RoundedRectangle(cornerRadius: 12))
-                    .onChange(of: model.boardDraft) { _, next in
-                        if next.count > 280 {
-                            model.boardDraft = String(next.prefix(280))
+                    .frame(height: 126)
+                    .focused($composing)
+                    .accessibilityLabel("Board message")
+                    .onChange(of: model.boardDraft) { _, value in
+                        if value.count > 280 {
+                            model.boardDraft = String(value.prefix(280))
                         }
                     }
                 HStack {
-                    Text("Letters, numbers and basic punctuation")
-                        .font(.system(size: 10))
-                        .foregroundStyle(PAUSEPalette.secondary)
+                    Text("Uppercase · 22 characters per row")
                     Spacer()
                     Text("\(model.boardDraft.count) / 280")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(PAUSEPalette.secondary)
+                        .monospacedDigit()
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            } header: {
+                Text("Compose")
+            } footer: {
+                Text("Each row is centered. Extra lines are not silently cut off.")
+            }
+
+            Section("Cloud display") {
+                HStack {
+                    Label("Connected account", systemImage: "icloud")
+                    Spacer()
+                    Text(cloud.signedIn ? "Signed in" : "Not connected")
+                        .foregroundStyle(.secondary)
                 }
                 Button {
-                    Task { await model.sendCustomMessage() }
-                } label: {
-                    Label("Send to board", systemImage: "arrow.up.right")
-                }
-                .buttonStyle(PAUSEButton())
-                .disabled(model.isWorking || model.boardDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
-                Button("Clear board message") {
-                    Task { await model.clearBoard() }
-                }
-                .buttonStyle(PAUSEButton(filled: false))
-                .disabled(model.isWorking)
-            }
-
-            PAUSECard {
-                PAUSEKicker(text: "02 / Test your nudge")
-                HStack(spacing: 12) {
-                    Image(systemName: model.category.icon)
-                        .font(.system(size: 20))
-                        .frame(width: 39, height: 39)
-                        .background(PAUSEPalette.background, in: RoundedRectangle(cornerRadius: 10))
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(model.category.title + " check-in")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Simulated event — not a real Screen Time reading")
-                            .font(.system(size: 11))
-                            .foregroundStyle(PAUSEPalette.secondary)
-                    }
-                }
-                Button("Send test nudge") {
-                    Task { await model.sendExampleNudge() }
-                }
-                .buttonStyle(PAUSEButton(filled: false))
-                .disabled(model.isWorking)
-            }
-
-            PAUSECard {
-                HStack {
-                    PAUSEKicker(text: "03 / Pair a board")
-                    Spacer()
-                    PAUSEStatusPill(text: model.boardConnected ? "Paired" : "Optional", positive: model.boardConnected)
-                }
-                Text("Works without a Mac")
-                    .font(.system(size: 16, weight: .semibold))
-                Text("The Screen Time dashboard and nudges work entirely on your iPhone. Connect a board only when you want messages to appear on another screen.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                    .lineSpacing(3)
-
-                Text("Mac board address")
-                    .font(.system(size: 11, weight: .semibold))
-                TextField("http://192.168.1.10:8765", text: $model.boardAddress)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                    .pauseField()
-
-                Text("Private pairing code")
-                    .font(.system(size: 11, weight: .semibold))
-                SecureField("From your Mac's PAUSE relay", text: $model.boardKey)
-                    .textInputAutocapitalization(.never)
-                    .pauseField()
-
-                Rectangle().fill(PAUSEPalette.line).frame(height: 1)
-                Toggle(isOn: Binding(
-                    get: { model.forwardThresholds },
-                    set: { model.setForwardThresholds($0) }
-                )) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Forward threshold events")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Opt in to sending generic check-ins automatically. Never app names or Screen Time reports.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(PAUSEPalette.secondary)
-                    }
-                }
-                .tint(PAUSEPalette.ink)
-
-                Button("Pair with board") {
-                    Task { await model.pairBoard() }
-                }
-                .buttonStyle(PAUSEButton(filled: false))
-                .disabled(model.isWorking)
-                Text("The existing Python relay is only a temporary bridge. We will replace it with the native Mac app later. Use trusted private Wi-Fi only.")
-                    .font(.system(size: 10))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            PAUSECard {
-                HStack {
-                    PAUSEKicker(text: "04 / Cloud Vestaboard")
-                    Spacer()
-                    PAUSEStatusPill(text: cloud.signedIn ? "Signed in" : "Not connected", positive: cloud.signedIn)
-                }
-                Text("Send to your board from anywhere.")
-                    .font(.system(size: 16, weight: .semibold))
-                Text("Use the same PAUSE cloud account across your devices. The board receives messages over HTTPS, without needing the old Python relay.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                Button("Send message through cloud") {
+                    composing = false
                     Task { await cloud.sendBoard(model.boardDraft) }
+                } label: {
+                    Label("Send message over cloud", systemImage: "paperplane.fill")
                 }
-                .buttonStyle(PAUSEButton())
-                .disabled(!cloud.signedIn)
-                Button("Clear cloud board") {
+                .disabled(!cloud.signedIn || !canSend)
+                Button(role: .destructive) {
                     Task { await cloud.sendBoard(nil) }
+                } label: {
+                    Label("Clear cloud display", systemImage: "xmark.circle")
                 }
-                .buttonStyle(PAUSEButton(filled: false))
                 .disabled(!cloud.signedIn)
                 Text(cloud.status)
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
-            PAUSEStatusNotice(text: model.status)
+            Section {
+                LabeledContent("Connection") {
+                    Text(model.boardConnected ? "Paired" : "Not paired")
+                        .foregroundStyle(.secondary)
+                }
+                TextField("Mac board address", text: $model.boardAddress,
+                          prompt: Text("http://192.168.1.10:8765"))
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+                SecureField("Pairing code", text: $model.boardKey)
+                    .textInputAutocapitalization(.never)
+                Button("Pair local display") {
+                    composing = false
+                    Task { await model.pairBoard() }
+                }
+                .disabled(model.isWorking)
+                Toggle("Forward generic limit events", isOn: Binding(
+                    get: { model.forwardThresholds },
+                    set: { model.setForwardThresholds($0) }
+                ))
+            } header: {
+                Text("Local display · Optional")
+            } footer: {
+                Text("For the older Mac relay on trusted Wi-Fi. Only generic reminder categories are forwarded, never app identities or Screen Time reports.")
+            }
+
+            Section("Try a reminder") {
+                Label(model.category.title + " check-in",
+                      systemImage: model.category.icon)
+                    .foregroundStyle(.secondary)
+                Button("Send simulated reminder") {
+                    Task { await model.sendExampleNudge() }
+                }
+                .disabled(model.isWorking || !model.boardConnected)
+            } footer: {
+                Text("A test message is not measured Screen Time.")
+            }
+
+            Section {
+                PAUSEStatusNotice(text: model.status)
+            }
+            .listRowBackground(Color.clear)
         }
+        .listStyle(.insetGrouped)
+        .navigationTitle("Board")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { composing = false }
+            }
+        }
+    }
+}
+
+/// One canonical layout, shared by preview and action validation.
+struct PAUSEBoardLayout {
+    let tiles: [String]
+    let overflow: Bool
+
+    init(message: String) {
+        var rows: [String] = []
+        for line in message.uppercased().components(separatedBy: "\n") {
+            let letters = Array(line)
+            if letters.isEmpty {
+                rows.append("")
+            } else {
+                for offset in stride(from: 0, to: letters.count, by: 22) {
+                    rows.append(String(letters[offset..<min(offset + 22, letters.count)]))
+                }
+            }
+        }
+        overflow = rows.count > 6
+        let visible = Array(rows.prefix(6))
+        let top = (6 - visible.count) / 2
+        var characters = Array(repeating: " ", count: 132)
+        for (rowIndex, line) in visible.enumerated() {
+            let letters = Array(line.prefix(22))
+            let left = (22 - letters.count) / 2
+            for (index, letter) in letters.enumerated() {
+                characters[(rowIndex + top) * 22 + left + index] = String(letter)
+            }
+        }
+        tiles = characters
     }
 }
 
 struct PAUSEFlapPreview: View {
     let message: String
 
-    private var characters: [String] {
-        var rows: [String] = []
-        for line in message.uppercased().components(separatedBy: "\n") {
-            let symbols = Array(line)
-            if symbols.isEmpty {
-                rows.append("")
-                continue
-            }
-            for offset in stride(from: 0, to: symbols.count, by: 22) {
-                let upper = min(symbols.count, offset + 22)
-                rows.append(String(symbols[offset..<upper]))
-            }
-        }
-        rows = Array(rows.prefix(6))
-        let blankRows = max(0, 6 - rows.count)
-        let start = blankRows / 2
-        var tiles = Array(repeating: " ", count: 6 * 22)
-        for (rowIndex, row) in rows.enumerated() {
-            let symbols = Array(row)
-            let left = (22 - symbols.count) / 2
-            for (index, character) in symbols.enumerated() {
-                tiles[(start + rowIndex) * 22 + left + index] = String(character)
-            }
-        }
-        return tiles
-    }
-
     var body: some View {
         GeometryReader { proxy in
-            let gap: CGFloat = 1.7
-            let cellWidth = (proxy.size.width - 21 * gap) / 22
+            let gap: CGFloat = 2
+            let cell = max(5, (proxy.size.width - 21 * gap) / 22)
+            let tiles = PAUSEBoardLayout(message: message).tiles
+
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: gap), count: 22),
-                spacing: 2.1
+                spacing: 3
             ) {
-                ForEach(characters.indices, id: \.self) { index in
+                ForEach(tiles.indices, id: \.self) { index in
                     ZStack {
                         RoundedRectangle(cornerRadius: 1.5)
-                            .fill(Color(red: 0.16, green: 0.17, blue: 0.17))
+                            .fill(Color(white: 0.19))
                         Rectangle()
-                            .fill(Color.black.opacity(0.6))
+                            .fill(.black.opacity(0.55))
                             .frame(height: 1)
-                        Text(characters[index])
-                            .font(.system(size: max(6, cellWidth * 0.62), weight: .medium, design: .monospaced))
+                        Text(tiles[index])
+                            .font(.system(size: max(7, cell * 0.60),
+                                          weight: .medium, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.94))
                             .minimumScaleFactor(0.5)
                             .lineLimit(1)
-                            .foregroundStyle(Color(red: 0.93, green: 0.93, blue: 0.89))
                     }
-                    .frame(height: max(13, cellWidth * 1.35))
+                    .frame(height: cell * 1.24)
                 }
             }
         }
-        .frame(height: 136)
-        .accessibilityLabel("Preview of the message on a six by twenty-two split-flap board")
+        .frame(height: 132)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Split-flap board preview: \(message)")
     }
 }
