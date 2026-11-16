@@ -8,6 +8,7 @@ on:
       - "macos/**"
       - "scripts/audit_sf_symbols.cjs"
       - "scripts/validate_sf_symbols.swift"
+      - "scripts/generate_app_icons.swift"
       - ".github/workflows/sf-symbols.yml"
   workflow_dispatch:
 
@@ -17,6 +18,8 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - name: Render shared PAUSE launcher icons
+        run: swift scripts/generate_app_icons.swift
       - name: Collect symbol identifiers from native SwiftUI screens
         run: |
           node scripts/audit_sf_symbols.cjs > /tmp/pause-sf-symbols.txt
