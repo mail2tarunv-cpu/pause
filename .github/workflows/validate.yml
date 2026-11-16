@@ -38,6 +38,7 @@ jobs:
           node tests/test_cloud.cjs
           node tests/test_ui_contract.cjs
           node tests/test_brand.cjs
+          node tests/test_board_hardware.cjs
           python - <<'PY'
           from pathlib import Path
           import re
