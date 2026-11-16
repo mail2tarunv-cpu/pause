@@ -53,23 +53,23 @@ struct PAUSEHomeView: View {
             Section {
                 HStack(spacing: 12) {
                     Image(systemName: model.category.icon)
-                        .font(.title3)
+                        .font(PAUSEType.heading(.title3))
                         .foregroundStyle(PAUSEPalette.tint)
                         .frame(width: 28)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(model.category.title)
-                            .font(.body.weight(.medium))
+                            .font(PAUSEType.body(.body, strong: true))
                         Text("\(model.selectionCount) selected apps, categories or sites")
-                            .font(.subheadline)
+                            .font(PAUSEType.body(.subheadline))
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("\(model.thresholdMinutes) min")
-                            .font(.body.monospacedDigit().weight(.semibold))
+                            .font(PAUSEType.body(.body, strong: true))
                         Text(model.monitoring ? "Monitoring" : "Paused")
-                            .font(.caption)
+                            .font(PAUSEType.body(.caption))
                             .foregroundStyle(model.monitoring ? .green : .secondary)
                     }
                 }
@@ -93,7 +93,7 @@ struct PAUSEHomeView: View {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("\(event.category.capitalized) limit reached")
                                 Text(event.occurredAt.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption)
+                                    .font(PAUSEType.body(.caption))
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
@@ -136,12 +136,14 @@ struct PAUSEHomeView: View {
             .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(PAUSEPalette.background)
         .navigationTitle("Today")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Text(Date().formatted(.dateTime.month(.abbreviated).day()))
-                    .font(.subheadline)
+                    .font(PAUSEType.body(.subheadline))
                     .foregroundStyle(.secondary)
             }
         }
