@@ -54,6 +54,8 @@ struct PAUSESettingsView: View {
                         model.stopMonitoring()
                     }
                 }
+            } header: {
+                Text("Monitoring")
             } footer: {
                 Text("PAUSE monitors only selected activity. It does not read your messages or block apps.")
             }
