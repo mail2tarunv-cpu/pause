@@ -51,7 +51,7 @@ final class PAUSECloud: ObservableObject {
         authorized: Bool = true,
         prefer: String? = nil
     ) async throws -> Any {
-        guard let baseURL, !publishableKey.isEmpty else {
+        guard let baseURL, (publishableKey.hasPrefix("sb_publishable_") || publishableKey.hasPrefix("eyJ")) else {
             throw CloudError.message("Enter your project URL and public key.")
         }
         let url = URL(string: baseURL + path)!
@@ -202,7 +202,11 @@ final class PAUSECloud: ObservableObject {
     func loadMacSummaries() async {
         guard signedIn, enabled else { return }
         do {
-            let date = ISO8601DateFormatter().string(from: Date()).prefix(10)
+            let dayFormatter = DateFormatter()
+            dayFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dayFormatter.timeZone = .current
+            dayFormatter.dateFormat = "yyyy-MM-dd"
+            let date = dayFormatter.string(from: Date())
             let result = try await request(
                 "/rest/v1/pause_usage_daily?select=category,seconds&user_id=eq.\(owner)&day=eq.\(date)"
             )
