@@ -43,9 +43,11 @@ assert.match(settings, /SecureField\(/);
 assert.match(report, /ProgressView\(/);
 assert.doesNotMatch(report, /Color\(red: 0\.94, green: 0\.92/,
   "Protected Screen Time report should not force a warm card in Dark Mode");
-assert.match(palette, /systemGroupedBackground/);
-assert.match(palette, /Color\.primary/);
-assert.match(palette, /Color\.secondary/);
+assert.match(palette, /0xF7F7F5/);
+assert.match(palette, /SpaceGrotesk-Bold/);
+assert.match(palette, /DMMono-Regular/);
+assert.match(palette, /PAUSEShapeStamp/);
+assert.match(palette, /traits\.userInterfaceStyle/);
 
 assert.match(mac, /NavigationSplitView/);
 assert.match(mac, /\.listStyle\(\.sidebar\)/);
