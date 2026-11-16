@@ -4,12 +4,15 @@ A real SwiftUI macOS application with an optional menu-bar control. It counts fo
 
 ## Install and run
 
+The original PAUSE Dock icon is generated locally from `scripts/generate_app_icons.swift` (no third-party icon art). All interface controls use Apple SF Symbols.
+
 Prerequisites: macOS 14+, Xcode, XcodeGen.
 
 ```bash
 git clone https://github.com/mail2tarunv-cpu/pause.git
 cd pause
 brew install xcodegen
+swift scripts/generate_app_icons.swift
 cd macos
 xcodegen generate
 open PAUSEMac.xcodeproj
