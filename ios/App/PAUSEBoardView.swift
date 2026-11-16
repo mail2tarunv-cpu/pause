@@ -16,6 +16,13 @@ struct PAUSEBoardView: View {
     var body: some View {
         List {
             Section {
+                PAUSEIntro(title: "Your message, out in the open.",
+                           subtitle: "Make a little room for the thought that matters.",
+                           symbol: "rectangle.grid.1x2")
+            }
+            .listRowBackground(Color.clear)
+
+            Section {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         Label("LIVE PREVIEW", systemImage: "square.grid.3x3.fill")
