@@ -16,7 +16,12 @@ function visit(directory) {
       // systemName/systemImage fields can be ternaries containing two names.
       const marker = /\b(systemName|systemImage|symbol):/.exec(line);
       if (!marker) continue;
-      const tail = line.slice(marker.index + marker[0].length);
+      const expression = line.slice(marker.index + marker[0].length);
+      // A ternary may compare a model value to "site" before choosing the
+      // actual glyph: ignore its condition, keep both symbol branches.
+      const tail = expression.includes("?")
+        ? expression.slice(expression.indexOf("?") + 1)
+        : expression;
       for (const match of tail.matchAll(/"([a-z][a-z0-9.-]*)"/g)) {
         names.add(match[1]);
       }
