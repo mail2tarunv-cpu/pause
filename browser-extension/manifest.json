@@ -3,16 +3,22 @@
   "name": "PAUSE — Attention Bridge",
   "version": "0.1.0",
   "description": "Privately tells PAUSE for Mac which website is currently active, without collecting URLs or titles.",
-  "permissions": ["tabs", "windows", "idle", "storage", "alarms"],
-  "host_permissions": ["http://127.0.0.1:8766/*"],
-  "background": {"service_worker": "background.js"},
+  "permissions": [
+    "tabs",
+    "windows",
+    "idle",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8766/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_title": "PAUSE — Attention Bridge",
     "default_popup": "popup.html"
   },
-  "options_page": "options.html",
-  "icons": {
-    "48": "icon48.png",
-    "128": "icon128.png"
-  }
+  "options_page": "options.html"
 }
