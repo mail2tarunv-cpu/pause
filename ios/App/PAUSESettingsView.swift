@@ -107,7 +107,7 @@ struct PAUSESettingsView: View {
                     .disabled(cloud.email.isEmpty || cloud.password.isEmpty)
                 }
                 Text(cloud.status)
-                    .font(.footnote)
+                    .font(PAUSEType.body(.footnote))
                     .foregroundStyle(.secondary)
             } header: {
                 Text("Private cloud · Optional")
@@ -143,8 +143,10 @@ struct PAUSESettingsView: View {
             .listRowBackground(Color.clear)
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(PAUSEPalette.background)
         .navigationTitle("Settings")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Delete local check-in history?",
             isPresented: $showClearConfirmation, titleVisibility: .visible) {
             Button("Delete history", role: .destructive) {
