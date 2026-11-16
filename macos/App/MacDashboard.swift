@@ -358,7 +358,7 @@ struct MacDashboard: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 15) {
                     MacBoardPreview(message: activity.cloudBoardMessage ??
-                        "A LITTLE SPACE\nTO NOTICE WHAT MATTERS")
+                        "🟦  🟨  🟧  🟦  🟨  🟧  🟦  🟨\n🟩  🟥  🟪  🟩  🟥  🟪  🟩  🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨  🟧  🟦  🟨  🟧  🟦  🟨  🟧\n🟪  🟩  🟥  🟪  🟩  🟥  🟪  🟩")
                     HStack {
                         Label(cloud.syncEnabled ? "Cloud polling enabled" : "Local preview",
                               systemImage: "rectangle.on.rectangle")
@@ -374,7 +374,7 @@ struct MacDashboard: View {
                 }
                 .padding(.vertical, 8)
             } label: {
-                Text("Vestaboard")
+                Text("PAUSE display")
             }
             if !cloud.authenticated {
                 Button("Connect a Cloud Account") { selection = .cloud }
@@ -388,50 +388,121 @@ private struct MacBoardPreview: View {
     let message: String
 
     private var characters: [String] {
-        var lines: [String] = []
+        var rows: [String] = []
         for line in message.uppercased().components(separatedBy: "\n") {
-            let array = Array(line)
-            if array.isEmpty {
-                lines.append("")
-            } else {
-                for offset in stride(from: 0, to: array.count, by: 22) {
-                    lines.append(String(array[offset..<min(offset + 22, array.count)]))
-                }
+            let chars = Array(line)
+            if chars.isEmpty { rows.append(""); continue }
+            for offset in stride(from: 0, to: chars.count, by: 22) {
+                rows.append(String(chars[offset..<min(offset + 22, chars.count)]))
             }
         }
-        let rows = Array(lines.prefix(6))
-        var cells = Array(repeating: " ", count: 132)
-        for (row, line) in rows.enumerated() {
+        let active = Array(rows.prefix(6))
+        var tiles = Array(repeating: " ", count: 132)
+        for (row, line) in active.enumerated() {
             let chars = Array(line.prefix(22))
-            let left = (22 - chars.count) / 2
-            for (col, character) in chars.enumerated() {
-                cells[(row + (6 - rows.count) / 2) * 22 + left + col] = String(character)
+            for (col, glyph) in chars.enumerated() {
+                let index = (row + (6 - active.count) / 2) * 22
+                            + (22 - chars.count) / 2 + col
+                tiles[index] = String(glyph)
             }
         }
-        return cells
+        return tiles
+    }
+
+    private func finish(_ glyph: String) -> [Color] {
+        switch glyph {
+        case "🟥": return [Color(red: 0.98, green: 0.19, blue: 0.19),
+                          Color(red: 0.83, green: 0.12, blue: 0.15)]
+        case "🟧": return [Color(red: 1, green: 0.51, blue: 0.11),
+                          Color(red: 0.90, green: 0.41, blue: 0.07)]
+        case "🟨": return [Color(red: 1, green: 0.80, blue: 0.13),
+                          Color(red: 0.92, green: 0.71, blue: 0.11)]
+        case "🟩": return [Color(red: 0.10, green: 0.68, blue: 0.28),
+                          Color(red: 0.07, green: 0.54, blue: 0.23)]
+        case "🟦": return [Color(red: 0, green: 0.62, blue: 0.93),
+                          Color(red: 0.03, green: 0.46, blue: 0.80)]
+        case "🟪": return [Color(red: 0.66, green: 0.18, blue: 0.77),
+                          Color(red: 0.55, green: 0.13, blue: 0.62)]
+        default: return [Color(white: 0.18), Color(white: 0.125)]
+        }
     }
 
     var body: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 2), count: 22),
-            spacing: 3
-        ) {
-            ForEach(characters.indices, id: \.self) { index in
-                ZStack {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color(white: 0.19))
-                    Text(characters[index])
-                        .font(.custom("DMMono-Medium", size: 11))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                        .foregroundStyle(.white)
+        GeometryReader { geo in
+            let width = geo.size.width
+            let height = width / 1.865
+            let gridWidth = width * 0.86
+            let gap = max(2, width * 0.0055)
+            let rowGap = max(3, width * 0.0095)
+            let cellWidth = max(3, (gridWidth - gap * 21) / 22)
+            let cellHeight = cellWidth / 0.625
+            let tiles = characters
+
+            ZStack {
+                Rectangle()
+                    .fill(LinearGradient(
+                        colors: [Color(white: 0.16),
+                                 Color(white: 0.075),
+                                 Color(white: 0.15)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                Rectangle()
+                    .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                    .padding(5)
+
+                LazyVGrid(
+                    columns: Array(
+                        repeating: GridItem(.fixed(cellWidth), spacing: gap),
+                        count: 22
+                    ), spacing: rowGap
+                ) {
+                    ForEach(tiles.indices, id: \.self) { index in
+                        let glyph = tiles[index]
+                        ZStack {
+                            LinearGradient(
+                                colors: finish(glyph),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            Rectangle()
+                                .fill(Color.black.opacity(0.85))
+                                .frame(height: max(1, width * 0.0016))
+                            if !["🟥","🟧","🟨","🟩","🟦","🟪"].contains(glyph) {
+                                Text(glyph)
+                                    .font(.custom(
+                                        "DMMono-Medium",
+                                        size: max(6, cellWidth * 0.61)
+                                    ))
+                                    .minimumScaleFactor(0.55)
+                                    .lineLimit(1)
+                                    .foregroundStyle(Color(white: 0.94))
+                            }
+                        }
+                        .frame(width: cellWidth, height: cellHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: 1.5))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .strokeBorder(.black.opacity(0.7), lineWidth: 1)
+                        }
+                    }
                 }
-                .frame(height: 20)
+                .frame(width: gridWidth)
+                .position(x: width / 2, y: height * 0.485)
+
+                Text("PAUSE")
+                    .font(.custom("SpaceGrotesk-Bold",
+                                  size: max(7, width * 0.012)))
+                    .tracking(3)
+                    .foregroundStyle(Color.black.opacity(0.62))
+                    .position(x: width / 2, y: height * 0.943)
             }
+            .frame(width: width, height: height)
+            .overlay { Rectangle().strokeBorder(Color.black, lineWidth: 1) }
+            .shadow(color: .black.opacity(0.25), radius: 17, x: 11, y: 16)
         }
-        .padding(16)
-        .background(Color(white: 0.09), in: RoundedRectangle(cornerRadius: 12))
+        .aspectRatio(1.865, contentMode: .fit)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Vestaboard preview: \(message)")
+        .accessibilityLabel("PAUSE physical split-flap preview: \(message)")
     }
 }
