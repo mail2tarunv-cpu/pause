@@ -38,7 +38,7 @@ func drawIcon(_ side: Int, macStyle: Bool = false) throws -> Data {
     // All design units use a 1024 × 1024 canvas.
     let scale = CGFloat(side) / 1024
     context.scaleBy(x: scale, y: scale)
-    let background = color(0.075, 0.19, 0.20)
+    let background = color(0.065, 0.065, 0.072)
     if macStyle {
         // macOS Dock icons carry their own rounded-square silhouette.
         // Leave transparent space outside it rather than shipping a square.
@@ -58,18 +58,25 @@ func drawIcon(_ side: Int, macStyle: Bool = false) throws -> Data {
     // Vestaboard character without adding illegible letters or decoration.
     let cream = color(0.960, 0.955, 0.926)
     let lower = color(0.850, 0.873, 0.846)
-    let seam = color(0.54, 0.62, 0.60)
-    for x in [307.0, 563.0] {
-        for y in [255.0, 431.0, 607.0] {
+    let seam = color(0.30, 0.31, 0.33)
+    for (column, x) in [307.0, 563.0].enumerated() {
+        for (row, y) in [255.0, 431.0, 607.0].enumerated() {
             let tile = CGRect(x: x, y: y, width: 154, height: 162)
-            rounded(context, tile, radius: 14, fill: cream)
+            // Two luminous tiles evoke the user's reference split-flap board.
+            let orange = column == 0 && row == 1
+            let cyan = column == 1 && row == 2
+            let top = orange ? color(1.0, 0.368, 0.086) :
+                      cyan ? color(0.074, 0.82, 0.886) : cream
+            let bottom = orange ? color(0.88, 0.285, 0.046) :
+                         cyan ? color(0.055, 0.69, 0.76) : lower
+            rounded(context, tile, radius: 14, fill: top)
             context.saveGState()
             context.addPath(CGPath(
                 roundedRect: tile, cornerWidth: 14,
                 cornerHeight: 14, transform: nil
             ))
             context.clip()
-            context.setFillColor(lower)
+            context.setFillColor(bottom)
             context.fill(CGRect(x: x, y: y, width: 154, height: 80))
             context.setFillColor(seam)
             context.fill(CGRect(x: x, y: y + 79, width: 154, height: 3))
