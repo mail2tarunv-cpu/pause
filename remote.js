@@ -7,7 +7,7 @@
   let started = false;
   let pending = false;
   const poll = async () => {
-    if (pending || document.hidden) return;
+    if (pending || document.hidden || window.PauseCloudBoard?.isHeld?.()) return;
     pending = true;
     try {
       const response = await fetch("/pause-api/board", {cache:"no-store"});
