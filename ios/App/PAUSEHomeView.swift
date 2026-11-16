@@ -24,7 +24,7 @@ struct PAUSEHomeView: View {
             }
             .listRowBackground(Color.clear)
 
-            Section("Screen Time") {
+            Section {
                 if model.screenTimeAuthorized {
                     DeviceActivityReport(
                         DeviceActivityReport.Context("pause.daily"),
@@ -48,6 +48,8 @@ struct PAUSEHomeView: View {
                     }
                     .listRowBackground(Color.clear)
                 }
+            } header: {
+                PAUSESectionHeading(title: "Screen Time")
             }
 
             Section {
@@ -80,7 +82,7 @@ struct PAUSEHomeView: View {
                 Text("One cumulative daily threshold. It does not measure continuous sessions.")
             }
 
-            Section("Recent check-ins") {
+            Section {
                 if model.recentEvents.isEmpty {
                     PAUSEInfoRow(
                         symbol: "bell.slash",
@@ -102,6 +104,8 @@ struct PAUSEHomeView: View {
                         }
                     }
                 }
+            } header: {
+                PAUSESectionHeading(title: "Recent check-ins")
             }
 
             if cloud.enabled && cloud.signedIn {
