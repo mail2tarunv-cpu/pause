@@ -5,11 +5,12 @@ A Manifest V3 extension for **Chrome and Chromium-based browsers**. It provides 
 ## Install
 
 1. Build/run [PAUSE for Mac](../macos/README.md).
-2. In Chrome open `chrome://extensions/`.
-3. Enable **Developer mode**, click **Load unpacked**, and choose this `browser-extension/` folder.
-4. Click the extension icon. Copy the 48-character pairing token from PAUSE for Mac’s Browser Extension panel.
-5. Paste the token and click **Pair / Test**.
-6. In the Mac app confirm the extension is connected and the current site domain updates as you change tabs.
+2. From the repository root run `swift scripts/generate_app_icons.swift` once to generate the shared PAUSE toolbar icon (requires Xcode/macOS). This populates the icon files referenced by `manifest.json`.
+3. In Chrome open `chrome://extensions/`.
+4. Enable **Developer mode**, click **Load unpacked**, and choose this `browser-extension/` folder.
+5. Click the extension icon. Copy the 48-character pairing token from PAUSE for Mac’s Browser Extension panel.
+6. Paste the token and click **Pair / Test**.
+7. In the Mac app confirm the extension is connected and the current site domain updates as you change tabs.
 
 The extension is disabled until you pair. You can pause it or forget the code at any time. After rotating the Mac token, pair again.
 
