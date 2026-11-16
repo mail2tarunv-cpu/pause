@@ -15,6 +15,16 @@ targets:
     sources:
       - App
       - Shared
+      - path: ../assets/fonts/SpaceGrotesk-Regular.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/SpaceGrotesk-Medium.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/SpaceGrotesk-Bold.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/DMMono-Regular.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/DMMono-Medium.ttf
+        buildPhase: resources
     info:
       path: App/Info.plist
     entitlements:
@@ -48,6 +58,16 @@ targets:
     platform: iOS
     sources:
       - Report
+      - path: ../assets/fonts/SpaceGrotesk-Regular.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/SpaceGrotesk-Medium.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/SpaceGrotesk-Bold.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/DMMono-Regular.ttf
+        buildPhase: resources
+      - path: ../assets/fonts/DMMono-Medium.ttf
+        buildPhase: resources
     info:
       path: Report/Info.plist
     entitlements:
