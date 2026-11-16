@@ -5,6 +5,25 @@
 - The supplied high-energy type composition inspires bold Space Grotesk headings and tiny supporting geometric accents.
 - Do **not** place high-saturation blocks behind long paragraphs or UI form labels. The colored shapes create rhythm around typography, while the actual interface remains accessible and focused.
 
+## Primary visual reference: physical split-flap board
+
+The attached hardware photograph is the **source of truth** for the board's appearance. The earlier bold-typography poster remains inspiration for PAUSE's interface typography, but **not** for the board object itself.
+
+- Wide, approximately **1.865:1** charcoal-black framed object, with a very thin border and recessed interior.
+- **Exactly 6 rows × 22 columns (132 flaps)**. The tile matrix is centered with consistent top and bottom margins.
+- Each tile has a narrow well, slightly different upper/lower flap shade, a mechanical horizontal seam, and legible white mono lettering.
+- Colored tiles are actual flap faces—not separate decorative circles, confetti, stickers or overlays.
+- A subtle shadow and a nearly-white wall/gallery background keep the physical board as the focal point.
+- The PAUSE wordmark is a small embossed detail on the frame's bottom bezel.
+- On the default idle scene, chromatic rows surround a simple two-line message; custom messages and real-time screen-time nudges still replace that scene.
+- The web board, cloud preview, local controller preview, iPhone preview and Mac preview share the hardware proportions; do not redesign them independently.
+
+Implementation: [`board-hardware.css`](board-hardware.css) and [`test_board_hardware.cjs`](../tests/test_board_hardware.cjs). The decorative `pause-shape-strip` is intentionally **removed from the board display page**, while it can remain on supporting control screens.
+
+### Visual QA before release
+
+Compare an actual desktop browser screenshot at **1200 × 675** to the attached reference: the physical frame should occupy roughly 786 × 421 pixels and the inner flap grid should be approximately 673 × 308 pixels. Verify that the exact 132 cells are present, the grid is centered, all text is legible across the seam, and tablet/mobile layouts preserve the aspect ratio. Run color/preset transitions and confirm the board remains functional. Native compilation is separate from rendered visual QA.
+
 ## Typography
 | Role | Font | Weight | Detail |
 |---|---|---|---|
