@@ -14,6 +14,10 @@ This repository contains **source code**, not a signed IPA. The iPhone applicati
 
 No app blocking, no AI, and no unrestricted Screen Time data extraction. **Optional consent-based cloud sync for generic threshold events and board messages is now implemented**, but it requires a separately provisioned PAUSE Supabase project and has not been end-to-end device tested.
 
+## PAUSE launcher icon
+
+PAUSE now has an original split-flap-inspired launcher icon, separate from Apple's system interface icons. The Xcode project uses `AppIcon` from the asset catalog. Generate its PNG sizes from the committed Swift drawing source using `swift scripts/generate_app_icons.swift` at the repo root before generating/opening the project. The CI simulator build also generates it automatically. The same mark is used on Mac and in the browser extension.
+
 ## Build and install on your iPhone
 
 ### What you need
@@ -49,6 +53,7 @@ Choose a **unique** reverse-DNS identifier owned by you, e.g. `com.yourlastname.
 
 ```bash
 python3 ios/configure.py --bundle-id com.yourlastname.pause
+swift scripts/generate_app_icons.swift
 cd ios
 xcodegen generate
 open PAUSECompanion.xcodeproj
