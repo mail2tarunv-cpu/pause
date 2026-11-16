@@ -12,11 +12,12 @@
 </style>
 <link rel="stylesheet" href="v2.css">
 <link rel="stylesheet" href="design/pause-theme.css">
+<link rel="stylesheet" href="design/board-hardware.css">
 </head>
-<body>
+<body class="pause-board-page">
 <div class="app" id="app">
 <header class="topbar"><div class="brand">PAUSE <span>AN ATTENTION EXPERIMENT</span></div><div class="top-actions"><button class="minimal-button" id="composeTop">Write a message</button><button class="icon-button" id="settingsTop" title="Settings" aria-label="Settings">⚙</button></div></header>
-<main class="hero"><div class="pause-shape-strip" aria-hidden="true"><span class="quarter"></span><span class="disc"></span><span class="triangle"></span><span class="wave"><i></i><i></i><i></i></span><span class="dot"></span></div><p class="eyebrow">A little space to notice.</p><div class="board-shell" aria-label="Six row, twenty two column split flap display"><div class="flap-grid" id="grid"></div></div><p class="footnote">132 individual split flaps · 6 rows × 22 columns</p></main>
+<main class="hero"><p class="eyebrow">A little space to notice.</p><div class="board-shell" role="img" aria-label="PAUSE, a six-row, twenty-two-column split-flap display with mechanical letter and color tiles"><div class="flap-grid" id="grid" aria-hidden="true"></div><div class="board-wordmark" aria-hidden="true">PAUSE</div></div><p class="footnote">A study in attention · 132 mechanical split flaps</p></main>
 <footer class="bottom"><div class="caption">A quieter way to be mindful of where your time goes. <br>V1 · The board, before the intelligence.</div><div class="dock"><button id="presetsBtn">Scenes ↗</button><button id="shuffleBtn">Surprise me ↻</button><button id="fullscreenBtn">Full screen ⛶</button><button class="primary" id="composeBtn">Change message ↗</button></div></footer>
 </div>
 <div class="overlay" id="overlay" aria-hidden="true"><aside class="panel" role="dialog" aria-modal="true" aria-label="Board controls"><div class="panel-header"><h2 id="panelTitle">Write a message</h2><button class="close" id="closePanel" aria-label="Close">×</button></div><div id="composePanel"><div class="group-label">Your message</div><p class="group-help">Up to 6 lines, 22 characters per line. Text automatically wraps and centers on the display.</p><textarea id="messageInput" class="composer" spellcheck="false" maxlength="300" placeholder="MAKE A LITTLE SPACE FOR SOMETHING REAL"></textarea><div class="composer-footer"><span>Letters, numbers & punctuation</span><span id="count">0 / 132</span></div><button class="panel-primary" id="sendBtn">Flip the board →</button><div class="group-label">Quick gestures</div><div class="preset-list" id="composePresets"></div></div>
@@ -27,7 +28,7 @@
 (()=>{'use strict';
 const ROWS=6,COLS=22,TOTAL=132;
 const presets=[
-{title:'A little pause',subtitle:'Quiet ambient welcome',message:'A LITTLE SPACE TO\nNOTICE WHAT MATTERS'},
+{title:'Chromatic pause',subtitle:'Physical board color study',message:['🟦  🟨  🟧  🟦  🟨  🟧  🟦  🟨','🟩  🟥  🟪  🟩  🟥  🟪  🟩  🟥','🟧    LESS SCREEN     🟦','🟩     MORE LIFE      🟥','🟨  🟧  🟦  🟨  🟧  🟦  🟨  🟧','🟪  🟩  🟥  🟪  🟩  🟥  🟪  🟩'].join('\n')},
 {title:'Screen time',subtitle:'Illustrative usage snapshot',message:'TODAY ON YOUR PHONE\n\n3 HOURS 24 MINUTES\n\nHOW DID IT FEEL?'},
 {title:'Social nudge',subtitle:'More direct, but still kind',message:'YOUR 15 MINUTE BREAK\nTURNED INTO 40.\n\nREADY TO STEP AWAY?'},
 {title:'Creative-work break',subtitle:'Low-pressure reminder',message:'YOU HAVE BEEN MAKING\nTHINGS FOR A WHILE.\n\nSTRETCH BREAK?'},
@@ -44,7 +45,7 @@ const config=saved('settings',{sound:false,animation:true,speed:'normal'});
 const makeHalf=(name,char)=>{const part=document.createElement('span');part.className='half '+name;const glyph=document.createElement('span');glyph.className='glyph';glyph.textContent=colorTokens[char]?'':char;part.append(glyph);return part};
 const setTile=(tile,char)=>{tile.dataset.char=char;tile.className='tile'+(colorTokens[char]?' color-'+colorTokens[char]:'');tile.replaceChildren(makeHalf('upper',char),makeHalf('lower',char));const seam=document.createElement('span');seam.className='seam';const left=document.createElement('span'),right=document.createElement('span');left.className='hinge left';right.className='hinge right';tile.append(seam,left,right)};
 for(let i=0;i<TOTAL;i++){const el=document.createElement('div');setTile(el,' ');grid.append(el);tiles.push(el)}
-function chunks(str){const cleaned=String(str||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\-\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ');const lines=[];for(const line of cleaned.split('\n')){if(!line.trim()){lines.push('');continue}const words=line.trim().split(/\s+/);let part='';for(const word of words){const chars=Array.from(word);if(chars.length>COLS){if(part){lines.push(part);part=''}for(let i=0;i<chars.length;i+=COLS)lines.push(chars.slice(i,i+COLS).join(''));continue}if((Array.from(part).length+(part?1:0)+chars.length)>COLS){lines.push(part);part=word}else{part+=(part?' ':'')+word}}lines.push(part)}return lines.slice(0,ROWS)}
+function chunks(str){const cleaned=String(str||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\-\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ');const lines=[];for(const line of cleaned.split('\n')){if(Array.from(line).length===COLS && /[🟥🟧🟨🟩🟦🟪⬜]/u.test(line)){lines.push(line);continue}if(!line.trim()){lines.push('');continue}const words=line.trim().split(/\s+/);let part='';for(const word of words){const chars=Array.from(word);if(chars.length>COLS){if(part){lines.push(part);part=''}for(let i=0;i<chars.length;i+=COLS)lines.push(chars.slice(i,i+COLS).join(''));continue}if((Array.from(part).length+(part?1:0)+chars.length)>COLS){lines.push(part);part=word}else{part+=(part?' ':'')+word}}lines.push(part)}return lines.slice(0,ROWS)}
 function format(text){const lines=chunks(text),result=Array(TOTAL).fill(' '),start=Math.max(0,Math.floor((ROWS-lines.length)/2));lines.forEach((line,i)=>{const chars=Array.from(line),offset=Math.floor((COLS-chars.length)/2);chars.forEach((ch,j)=>{if(start+i<ROWS&&offset+j<COLS)result[(start+i)*COLS+offset+j]=ch})});return result}
 let audioContext=null;function clickSound(){if(!config.sound)return;try{audioContext??=new(window.AudioContext||window.webkitAudioContext)();const noise=audioContext.createBuffer(1,Math.round(audioContext.sampleRate*.018),audioContext.sampleRate),a=noise.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);const source=audioContext.createBufferSource(),gain=audioContext.createGain();source.buffer=noise;gain.gain.value=.009;source.connect(gain);gain.connect(audioContext.destination);source.start()}catch{}}
 function flipOne(idx,next,token){if(token!==generation)return;const el=tiles[idx],prev=current[idx];if(prev===next)return;const doAnimate=config.animation&&!matchMedia('(prefers-reduced-motion: reduce)').matches;if(!doAnimate){setTile(el,next);current[idx]=next;return}
@@ -65,7 +66,7 @@ document.getElementById('fullscreenBtn').onclick=async()=>{try{if(document.fulls
 document.addEventListener('fullscreenchange',()=>document.getElementById('app').classList.toggle('fullscreen',!!document.fullscreenElement));
 document.getElementById('soundToggle').checked=config.sound;document.getElementById('animationToggle').checked=config.animation;document.getElementById('speedSelect').value=config.speed;
 [['soundToggle','sound'],['animationToggle','animation']].forEach(([id,key])=>document.getElementById(id).onchange=e=>{config[key]=e.target.checked;persist('settings',config)});document.getElementById('speedSelect').onchange=e=>{config.speed=e.target.value;persist('settings',config)};
-const start=saved('message',presets[0].message);document.getElementById('messageInput').value=start;updateCount();display(start,false);
+const previousMessage=saved('message',null);const oldDefault='A LITTLE SPACE TO\nNOTICE WHAT MATTERS';const start=previousMessage===null||previousMessage===oldDefault?presets[0].message:previousMessage;document.getElementById('messageInput').value=start;updateCount();display(start,false);
 window.PauseBoard={display,closePanel};
 })();
 </script>
