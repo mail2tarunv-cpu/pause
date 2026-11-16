@@ -56,6 +56,7 @@ struct MacDashboard: View {
                 .padding(28)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
+            .background(PAUSEMacPalette.paper)
             .navigationTitle(selection?.title ?? "Overview")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -90,11 +91,14 @@ struct MacDashboard: View {
 
     @ViewBuilder private func intro(_ title: String, _ detail: String) -> some View {
         VStack(alignment: .leading, spacing: 7) {
+            PAUSEMacShapeStamp()
+                .padding(.bottom, 6)
             Text(title)
-                .font(.largeTitle.weight(.semibold))
+                .font(PAUSEMacType.heading(.largeTitle))
             Text(detail)
+                .font(PAUSEMacType.body(.subheadline))
                 .foregroundStyle(.secondary)
-                .font(.body)
+                .font(PAUSEMacType.body())
         }
         .padding(.bottom, 3)
     }
@@ -108,10 +112,10 @@ struct MacDashboard: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(timeToday)
-                            .font(.system(.largeTitle, design: .rounded, weight: .semibold))
+                            .font(PAUSEMacType.heading(.largeTitle))
                             .monospacedDigit()
                         Text("Foreground time, excluding idle periods")
-                            .font(.caption)
+                            .font(PAUSEMacType.body(.caption))
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -121,12 +125,12 @@ struct MacDashboard: View {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(activity.foreground)
-                            .font(.title3.weight(.medium))
+                            .font(PAUSEMacType.heading(.title3))
                             .lineLimit(2)
                             .frame(minHeight: 40, alignment: .leading)
                         Label(activity.isTracking ? "Tracking locally" : "Monitoring paused",
                               systemImage: activity.isTracking ? "checkmark.circle.fill" : "pause.circle")
-                            .font(.caption)
+                            .font(PAUSEMacType.body(.caption))
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -153,7 +157,7 @@ struct MacDashboard: View {
                         Button("Manage") { selection = .cloud }
                     }
                     Text("Local tracking continues without a browser extension or cloud account.")
-                        .font(.caption)
+                        .font(PAUSEMacType.body(.caption))
                         .foregroundStyle(.secondary)
                 }
             } label: {
@@ -180,11 +184,11 @@ struct MacDashboard: View {
                                 Text(entry.0.capitalized)
                                 Spacer()
                                 Text("\(entry.1 / 60)m")
-                                    .font(.body.monospacedDigit())
+                                    .font(PAUSEMacType.body())
                                     .foregroundStyle(.secondary)
                             }
                             ProgressView(value: Double(entry.1), total: Double(total))
-                                .tint(.accentColor)
+                                .tint(PAUSEMacPalette.tint)
                         }
                     }
                 }
@@ -214,14 +218,14 @@ struct MacDashboard: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(record.label)
                                         .lineLimit(1)
-                                        .font(.body.weight(.medium))
+                                        .font(PAUSEMacType.body(.body, strong: true))
                                     Text(record.category.capitalized)
-                                        .font(.caption)
+                                        .font(PAUSEMacType.body(.caption))
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer(minLength: 12)
                                 Text("\(record.seconds / 60)m")
-                                    .font(.body.monospacedDigit())
+                                    .font(PAUSEMacType.body())
                                     .foregroundStyle(.secondary)
                             }
                             .padding(.vertical, 9)
@@ -236,7 +240,7 @@ struct MacDashboard: View {
             HStack {
                 Label("Stored only on this Mac for up to seven days.",
                       systemImage: "lock.shield")
-                    .font(.caption)
+                    .font(PAUSEMacType.body(.caption))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("Clear Local History", role: .destructive) {
@@ -257,16 +261,16 @@ struct MacDashboard: View {
                     LabeledContent("Latest website", value: activity.lastWebsite)
                     Divider()
                     Text("Browser pairing code")
-                        .font(.headline)
+                        .font(PAUSEMacType.heading(.headline))
                     HStack {
                         Group {
                             if showingToken {
                                 Text(activity.browserPairingCode)
-                                    .font(.system(.body, design: .monospaced))
+                                    .font(PAUSEMacType.body())
                                     .textSelection(.enabled)
                             } else {
                                 Text("•••• •••• •••• •••• •••• ••••")
-                                    .font(.body)
+                                    .font(PAUSEMacType.body())
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -297,7 +301,7 @@ struct MacDashboard: View {
                     Label("3. Paste the pairing code in the extension popup.",
                           systemImage: "3.circle")
                     Text("The extension sends only active domains, never full URLs or page titles.")
-                        .font(.caption)
+                        .font(PAUSEMacType.body(.caption))
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -333,7 +337,7 @@ struct MacDashboard: View {
                 }
                 .formStyle(.grouped)
                 Text(cloud.status)
-                    .font(.caption)
+                    .font(PAUSEMacType.body(.caption))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
@@ -343,7 +347,7 @@ struct MacDashboard: View {
 
             Label("Only daily category totals leave this Mac with your permission. App names and website domains are never uploaded.",
                   systemImage: "hand.raised")
-                .font(.callout)
+                .font(PAUSEMacType.body(.callout))
                 .foregroundStyle(.secondary)
         }
     }
@@ -358,14 +362,14 @@ struct MacDashboard: View {
                     HStack {
                         Label(cloud.syncEnabled ? "Cloud polling enabled" : "Local preview",
                               systemImage: "rectangle.on.rectangle")
-                            .font(.callout)
+                            .font(PAUSEMacType.body(.callout))
                         Spacer()
                         Text(cloud.syncEnabled ? "Refreshes every ~30 sec" : "Sign in to connect")
-                            .font(.caption)
+                            .font(PAUSEMacType.body(.caption))
                             .foregroundStyle(.secondary)
                     }
                     Text("The native Mac preview mirrors your latest authenticated board message. To send a message, use the PAUSE iPhone app or cloud controller.")
-                        .font(.caption)
+                        .font(PAUSEMacType.body(.caption))
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 8)
@@ -417,7 +421,7 @@ private struct MacBoardPreview: View {
                     RoundedRectangle(cornerRadius: 2)
                         .fill(Color(white: 0.19))
                     Text(characters[index])
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.custom("DMMono-Medium", size: 11))
                         .minimumScaleFactor(0.5)
                         .lineLimit(1)
                         .foregroundStyle(.white)
