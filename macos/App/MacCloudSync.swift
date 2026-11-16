@@ -69,7 +69,7 @@ final class MacCloudSync: ObservableObject {
         auth: Bool = true,
         headers: [String: String] = [:]
     ) async throws -> Any {
-        guard let base, !publishableKey.isEmpty else { throw SyncError.configuration }
+        guard let base, publishableKey.hasPrefix("sb_publishable_") else { throw SyncError.configuration }
         let url = URL(string: base + path)!
         var req = URLRequest(url: url)
         req.httpMethod = method
