@@ -32,7 +32,11 @@ enum PAUSEMacPalette {
     })
     static let ink = Color.primary
     static let secondary = Color.secondary
-    static let tint = Color(red: 0.06, green: 0.48, blue: 0.42)
+    static let tint = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(calibratedRed: 0.45, green: 0.89, blue: 0.82, alpha: 1)
+            : NSColor(calibratedRed: 0.03, green: 0.47, blue: 0.42, alpha: 1)
+    })
     static let orange = Color(red: 1.0, green: 0.36, blue: 0.06)
     static let yellow = Color(red: 1.0, green: 0.88, blue: 0.03)
     static let pink = Color(red: 0.96, green: 0.31, blue: 0.90)
