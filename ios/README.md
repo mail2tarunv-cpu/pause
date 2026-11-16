@@ -12,7 +12,7 @@ This repository contains **source code**, not a signed IPA. The iPhone applicati
 - **Board:** Compose and preview 6×22 split-flap messages. Optionally pair the existing Mac-hosted PAUSE relay and send messages or simulated nudges.
 - **Settings:** Review permissions, stop monitoring, clear PAUSE's recorded threshold history, or forget board pairing.
 
-No app blocking, no AI, no cloud sync, and no unrestricted Screen Time data extraction.
+No app blocking, no AI, and no unrestricted Screen Time data extraction. **Optional consent-based cloud sync for generic threshold events and board messages is now implemented**, but it requires a separately provisioned PAUSE Supabase project and has not been end-to-end device tested.
 
 ## Build and install on your iPhone
 
@@ -97,6 +97,18 @@ From this tab, send messages or simulated nudges. **Automatic forwarding** of a 
 
 The LAN relay currently uses **unencrypted HTTP**. Never port-forward it, expose it to the public internet, or use untrusted Wi-Fi. Later we'll replace this with the native Mac app and a secure cross-device sync design.
 
+## Optional cloud sync — new
+
+After a dedicated PAUSE Supabase database is deployed using [supabase/schema.sql](../supabase/schema.sql), open **Settings → Cross-device sync** in the iPhone app.
+
+1. Enter the Supabase project HTTPS URL and **public publishable** key.
+2. Sign in using the same PAUSE email/password account as on the Mac and web controller.
+3. Explicitly enable **Share generic threshold events**. This is **off by default**.
+4. Open **Today** to review category-only daily Mac totals. They are not your iPhone Screen Time total.
+5. Open **Board → Cloud Vestaboard** to send a message through the authenticated HTTPS backend to the signed-in display.
+
+The app stores access/refresh tokens in the iOS Keychain. It uploads only generic threshold categories/timestamps when consented to, **not raw iPhone Screen Time reports or identifiable per-app usage histories**. Background cloud delivery may wait until you next foreground the app. You can sign out and disable sync without affecting local monitoring.
+
 ## Platform constraints / important caveats
 
 - A Screen Time report is **rendered by the system in a separate privacy-protected extension**; the host app cannot extract all identifiable app usage data to a central database.
@@ -119,4 +131,4 @@ The LAN relay currently uses **unencrypted HTTP**. Never port-forward it, expose
 - `Monitor/PAUSEActivityMonitor.swift`: threshold callback and notification
 - `Report/PAUSEReportExtension.swift`: system-isolated usage totals and per-category reporting
 - `Shared/PAUSETransport.swift`: optional paired LAN controller and queued events
-- `configure.py`: replacement of placeholder identifiers before generating the Xcode project
+- `App/PAUSECloud.swift`: optional Supabase Auth, Keychain session, generic event sync, Mac category reads, and remote board messages\n- `configure.py`: replacement of placeholder identifiers before generating the Xcode project
