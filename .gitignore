@@ -1,0 +1,11 @@
+# Generated Swift Xcode projects and private signing
+macos/PAUSEMac.xcodeproj/
+ios/PAUSECompanion.xcodeproj/
+safari-generated/
+DerivedData/
+*.xcuserstate
+*.xcuserdata/
+.DS_Store
+.env
+.env.*
+!.env.example
