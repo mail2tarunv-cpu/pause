@@ -1,5 +1,4 @@
 import SwiftUI
-import FamilyControls
 
 struct PAUSESettingsView: View {
     @ObservedObject var model: PAUSEModel
@@ -8,213 +7,161 @@ struct PAUSESettingsView: View {
     @State private var showDisconnectConfirmation = false
 
     var body: some View {
-        PAUSEPage {
-            PAUSEHeader(
-                eyebrow: "Preferences & privacy",
-                headline: "Your attention\nstays yours.",
-                description: "No account, no ads, no cloud activity archive. You decide what PAUSE can monitor."
-            )
+        Form {
+            Section {
+                PAUSEInfoRow(
+                    symbol: "hand.raised",
+                    title: "Your data stays yours",
+                    explanation: "PAUSE works without an account. Sharing across devices is optional."
+                )
+            }
+            .listRowBackground(Color.clear)
 
-            PAUSECard {
-                PAUSEKicker(text: "01 / Access")
-                settingRow(icon: "lock.shield", title: "Screen Time",
-                           detail: "Apple-controlled access",
-                           value: model.screenTimeAuthorized ? "Allowed" : "Off")
-                Rectangle().fill(PAUSEPalette.line).frame(height: 1)
-                settingRow(icon: "bell", title: "Notifications",
-                           detail: "Gentle threshold reminders",
-                           value: model.notificationAuthorized ? "Allowed" : "Off")
-
+            Section("Permissions") {
+                HStack {
+                    Label("Screen Time", systemImage: "hourglass")
+                    Spacer()
+                    Text(model.screenTimeAuthorized ? "Allowed" : "Off")
+                        .foregroundStyle(.secondary)
+                }
                 if !model.screenTimeAuthorized {
                     Button("Allow Screen Time") {
                         Task { await model.authorizeScreenTime() }
                     }
-                    .buttonStyle(PAUSEButton(filled: false))
+                }
+
+                HStack {
+                    Label("Notifications", systemImage: "bell")
+                    Spacer()
+                    Text(model.notificationAuthorized ? "Allowed" : "Off")
+                        .foregroundStyle(.secondary)
                 }
                 if !model.notificationAuthorized {
                     Button("Enable notifications") {
                         Task { await model.requestNotifications() }
                     }
-                    .buttonStyle(PAUSEButton(filled: false))
                 }
-                Text("You can revoke access in iPhone Settings at any time.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
             }
 
-            PAUSECard {
-                PAUSEKicker(text: "02 / Monitoring")
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(model.monitoring ? "Monitoring is on" : "Monitoring is paused")
-                            .font(.system(size: 16, weight: .medium))
-                        Text("Selected activity only")
-                            .font(.system(size: 12))
-                            .foregroundStyle(PAUSEPalette.secondary)
-                    }
-                    Spacer()
-                    PAUSEStatusPill(text: model.monitoring ? "On" : "Off", positive: model.monitoring)
+            Section {
+                LabeledContent("Monitoring") {
+                    Label(model.monitoring ? "On" : "Paused",
+                          systemImage: model.monitoring ? "checkmark.circle.fill" : "pause.circle")
+                        .foregroundStyle(model.monitoring ? Color.green : Color.secondary)
                 }
                 if model.monitoring {
-                    Button("Stop all PAUSE monitoring") {
+                    Button("Stop monitoring", role: .destructive) {
                         model.stopMonitoring()
                     }
-                    .buttonStyle(PAUSEButton(filled: false))
                 }
-                Text("PAUSE does not block apps or access the contents of your messages.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(PAUSEPalette.secondary)
+            } footer: {
+                Text("PAUSE monitors only selected activity. It does not read your messages or block apps.")
             }
 
-            PAUSECard {
-                PAUSEKicker(text: "03 / Your local data")
-                HStack(alignment: .top) {
-                    Image(systemName: "externaldrive")
-                        .font(.system(size: 20))
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Saved on your iPhone")
-                            .font(.system(size: 15, weight: .semibold))
-                        Text("Rules, app-selection tokens, and \(model.recentEvents.count) recent threshold events. Detailed reports stay in Apple's protected Screen Time extension.")
-                            .font(.system(size: 12))
-                            .foregroundStyle(PAUSEPalette.secondary)
-                            .lineSpacing(3)
-                    }
+            Section("Connected board") {
+                LabeledContent("Local board") {
+                    Text(model.boardConnected ? "Paired" : "Not paired")
+                        .foregroundStyle(.secondary)
                 }
-
-                Button("Clear PAUSE event history") {
-                    showClearConfirmation = true
-                }
-                .buttonStyle(PAUSEButton(filled: false))
-
-                Button("Forget paired board") {
+                Button("Forget local board", role: .destructive) {
                     showDisconnectConfirmation = true
                 }
-                .buttonStyle(PAUSEButton(filled: false))
+                .disabled(model.boardAddress.isEmpty && model.boardKey.isEmpty)
             }
 
-            PAUSECard {
-                HStack {
-                    PAUSEKicker(text: "04 / Cross-device sync")
-                    Spacer()
-                    PAUSEStatusPill(text: cloud.signedIn ? "Signed in" : "Optional", positive: cloud.signedIn)
-                }
-                Text("Sync your check-ins, not your Screen Time.")
-                    .font(.system(size: 16, weight: .semibold))
-                Text("Create a separate PAUSE cloud project and use the same account on iPhone, Mac and your Vestaboard. Only generic threshold events leave the iPhone.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                TextField("https://your-project.supabase.co", text: $cloud.projectURL)
+            Section {
+                TextField("Project URL", text: $cloud.projectURL,
+                          prompt: Text("https://your-project.supabase.co"))
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
-                    .pauseField()
-                TextField("Public project key", text: $cloud.publishableKey)
+                    .autocorrectionDisabled()
+                TextField("Public publishable key", text: $cloud.publishableKey)
                     .textInputAutocapitalization(.never)
-                    .pauseField()
-                if !cloud.signedIn {
-                    TextField("Email", text: $cloud.email)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                        .pauseField()
-                    SecureField("Password", text: $cloud.password)
-                        .pauseField()
-                    Button("Sign in to PAUSE cloud") {
-                        Task { await cloud.signIn() }
-                    }.buttonStyle(PAUSEButton())
-                } else {
-                    Toggle(isOn: Binding(
+                    .autocorrectionDisabled()
+
+                if cloud.signedIn {
+                    Toggle("Sync generic threshold events", isOn: Binding(
                         get: { cloud.enabled },
                         set: { cloud.setEnabled($0) }
-                    )) {
-                        Text("Share generic threshold events")
-                            .font(.system(size: 13, weight: .semibold))
-                    }.tint(PAUSEPalette.ink)
-                    Button("Sync now") {
+                    ))
+                    Button {
                         Task { await cloud.syncLocalEvents() }
-                    }.buttonStyle(PAUSEButton(filled: false))
-                    Button("Sign out of cloud") { cloud.signOut() }
-                        .buttonStyle(PAUSEButton(filled: false))
+                    } label: {
+                        Label("Sync now", systemImage: "arrow.clockwise")
+                    }
+                    Button("Sign out", role: .destructive) {
+                        cloud.signOut()
+                    }
+                } else {
+                    TextField("Email address", text: $cloud.email)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                    SecureField("Password", text: $cloud.password)
+                        .textContentType(.password)
+                    Button("Sign in") {
+                        Task { await cloud.signIn() }
+                    }
+                    .disabled(cloud.email.isEmpty || cloud.password.isEmpty)
                 }
                 Text(cloud.status)
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Private cloud · Optional")
+            } footer: {
+                Text("Sync shares only generic reminder events. Apple's raw Screen Time report stays on this iPhone.")
             }
 
-            PAUSECard(color: PAUSEPalette.sage.opacity(0.6)) {
-                PAUSEKicker(text: "05 / How this prototype works")
-                privacyRow("Screen Time data", "Apple's reporting extension draws your charts. The main app does not receive raw app-by-app usage.")
-                privacyRow("Thresholds", "Your iPhone records a small local event when a selected daily limit is reached.")
-                privacyRow("Remote board", "Only when you pair a board, PAUSE attempts to send a generic nudge. The Mac bridge is optional.")
-                privacyRow("No AI yet", "Today's prompts use predictable wording. Model-generated nudges aren't connected.")
+            Section {
+                LabeledContent("Local events", value: "\(model.recentEvents.count)")
+                Button("Clear check-in history", role: .destructive) {
+                    showClearConfirmation = true
+                }
+                .disabled(model.recentEvents.isEmpty)
+            } header: {
+                Text("Data & privacy")
+            } footer: {
+                Text("Clearing PAUSE events does not delete Apple's Screen Time history or previously synced cloud records.")
             }
 
-            HStack {
-                Text("PAUSE / iOS PROTOTYPE")
-                    .tracking(1.4)
-                Spacer()
-                Text("0.4")
+            Section("About") {
+                LabeledContent("App", value: "PAUSE")
+                LabeledContent("Version", value: "0.4")
+                PAUSEInfoRow(
+                    symbol: "info.circle",
+                    title: "Built for awareness",
+                    explanation: "Reminders currently use rules and templates, not AI-generated advice."
+                )
             }
-            .font(.system(size: 10, weight: .semibold, design: .monospaced))
-            .foregroundStyle(PAUSEPalette.secondary)
-            .padding(.horizontal, 4)
 
-            PAUSEStatusNotice(text: model.status)
+            Section {
+                PAUSEStatusNotice(text: model.status)
+            }
+            .listRowBackground(Color.clear)
         }
-        .confirmationDialog(
-            "Delete local check-in history?",
-            isPresented: $showClearConfirmation,
-            titleVisibility: .visible
-        ) {
+        .formStyle(.grouped)
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.large)
+        .confirmationDialog("Delete local check-in history?",
+            isPresented: $showClearConfirmation, titleVisibility: .visible) {
             Button("Delete history", role: .destructive) {
                 model.clearLocalHistory()
             }
         } message: {
-            Text("Your Screen Time data isn't affected. Only the PAUSE event list is cleared.")
+            Text("Only the PAUSE history on this iPhone will be cleared.")
         }
-        .confirmationDialog(
-            "Forget this board?",
-            isPresented: $showDisconnectConfirmation,
-            titleVisibility: .visible
-        ) {
+        .confirmationDialog("Forget the local board?",
+            isPresented: $showDisconnectConfirmation, titleVisibility: .visible) {
             Button("Forget board", role: .destructive) {
                 model.boardAddress = ""
                 model.boardKey = ""
                 model.boardConnected = false
                 model.saveBoardConnection()
-                model.status = "Board pairing cleared from this iPhone."
+                model.status = "Local board pairing cleared."
             }
         } message: {
-            Text("You can pair again later using the Mac relay address and a fresh code.")
-        }
-    }
-
-    @ViewBuilder private func settingRow(
-        icon: String, title: String, detail: String, value: String
-    ) -> some View {
-        HStack(spacing: 13) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.system(size: 14, weight: .semibold))
-                Text(detail)
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
-            }
-            Spacer()
-            Text(value)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(PAUSEPalette.secondary)
-        }
-    }
-
-    @ViewBuilder private func privacyRow(_ title: String, _ description: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.system(size: 13, weight: .semibold))
-            Text(description)
-                .font(.system(size: 11))
-                .foregroundStyle(PAUSEPalette.ink.opacity(0.68))
-                .lineSpacing(3)
+            Text("You can pair again from the Board tab.")
         }
     }
 }
