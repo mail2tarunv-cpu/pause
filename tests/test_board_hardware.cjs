@@ -16,7 +16,6 @@ assert.match(web, /<body class="pause-board-page">/);
 assert.match(web, /design\/board-hardware\.css/);
 assert.match(web, /class="board-shell"/);
 assert.match(web, /class="board-wordmark"/);
-assert.match(web, /class="printed-glyph"/); // renderer's JS class assignment
 assert.match(web, /print\.className='printed-glyph'/);
 assert.match(web, /const ROWS=6,COLS=22,TOTAL=132/);
 assert.match(css, /aspect-ratio:\s*1\.865/);
