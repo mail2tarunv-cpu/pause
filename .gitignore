@@ -15,3 +15,7 @@ ios/App/Assets.xcassets/AppIcon.appiconset/*.png
 macos/App/Assets.xcassets/AppIcon.appiconset/*.png
 browser-extension/icon48.png
 browser-extension/icon128.png
+
+# SIL OFL fonts reproduced from upstream pinned sources at build time
+assets/fonts/
+browser-extension/fonts/*.ttf
