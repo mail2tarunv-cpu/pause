@@ -76,7 +76,7 @@ struct PAUSEBoardView: View {
                 Text("Each row is centered. Extra lines are not silently cut off.")
             }
 
-            Section("Cloud display") {
+            Section {
                 HStack {
                     Label("Connected account", systemImage: "icloud")
                     Spacer()
@@ -99,6 +99,8 @@ struct PAUSEBoardView: View {
                 Text(cloud.status)
                     .font(PAUSEType.body(.footnote))
                     .foregroundStyle(.secondary)
+            } header: {
+                PAUSESectionHeading(title: "Cloud display")
             }
 
             Section {
