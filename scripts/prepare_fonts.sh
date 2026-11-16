@@ -28,8 +28,8 @@ download() {
 download "$SPACE/fonts/ttf/static/SpaceGrotesk-Regular.ttf" "$DEST/SpaceGrotesk-Regular.ttf"
 download "$SPACE/fonts/ttf/static/SpaceGrotesk-Medium.ttf" "$DEST/SpaceGrotesk-Medium.ttf"
 download "$SPACE/fonts/ttf/static/SpaceGrotesk-Bold.ttf" "$DEST/SpaceGrotesk-Bold.ttf"
-download "https://raw.githubusercontent.com/google/fonts/main/ofl/dmmono/DMMono-Regular.ttf" "$DEST/DMMono-Regular.ttf"
-download "https://raw.githubusercontent.com/google/fonts/main/ofl/dmmono/DMMono-Medium.ttf" "$DEST/DMMono-Medium.ttf"
+download "$DM/exports/DMMono-Regular.ttf" "$DEST/DMMono-Regular.ttf"
+download "$DM/exports/DMMono-Medium.ttf" "$DEST/DMMono-Medium.ttf"
 
 # Browser extensions may not remotely execute Google Fonts CSS. Bundle the
 # font files as static extension resources instead.
