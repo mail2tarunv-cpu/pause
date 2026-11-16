@@ -54,6 +54,7 @@ Choose a **unique** reverse-DNS identifier owned by you, e.g. `com.yourlastname.
 ```bash
 python3 ios/configure.py --bundle-id com.yourlastname.pause
 swift scripts/generate_app_icons.swift
+bash scripts/prepare_fonts.sh
 cd ios
 xcodegen generate
 open PAUSECompanion.xcodeproj
