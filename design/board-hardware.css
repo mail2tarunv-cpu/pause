@@ -49,7 +49,7 @@ body.pause-board-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6.1% 6.85% 8.7% !important;
+  padding: 0 !important;
   background: linear-gradient(145deg, #242526 0%, #141516 27%, #151617 72%, #262728 100%) !important;
   border: 2px solid #090a0b !important;
   box-shadow:
@@ -106,13 +106,16 @@ body.pause-board-page {
 .flap-grid,
 .board-frame .board,
 .frame .board {
-  width: 100%;
-  position: relative;
+  width: 86%;
+  position: absolute;
+  left: 7%;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(22, minmax(0, 1fr));
   column-gap: clamp(2px, .52vw, 8px);
-  row-gap: clamp(3px, .95vw, 14px);
+  row-gap: clamp(3px, 1.18vw, 16px);
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -185,7 +188,7 @@ body.pause-board-page {
 }
 .flap-grid .tile .glyph {
   font-family: "DM Mono", ui-monospace, monospace !important;
-  font-size: clamp(6px, 1.42vw, 21px) !important;
+  font-size: clamp(6px, 1.65vw, 24px) !important;
   font-weight: 500 !important;
   letter-spacing: -.07em !important;
   line-height: 1;
@@ -272,9 +275,9 @@ body.pause-board-page {
   .board-shell { width: calc(100vw - 48px) !important; }
   .flap-grid,.board-frame .board,.frame .board {
     column-gap: clamp(1px, .52vw, 5px);
-    row-gap: clamp(2px, .93vw, 8px);
+    row-gap: clamp(2px, 1.04vw, 11px);
   }
-  .flap-grid .tile .glyph { font-size: clamp(5px, 1.43vw, 12px) !important; }
+  .flap-grid .tile .glyph { font-size: clamp(5px, 1.55vw, 13px) !important; }
 }
 @media (max-width: 520px) {
   .pause-board-page .hero { padding-inline: 12px; }
