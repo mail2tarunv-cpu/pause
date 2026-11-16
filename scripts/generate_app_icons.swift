@@ -24,7 +24,7 @@ func rounded(_ context: CGContext, _ rect: CGRect, radius: CGFloat, fill: CGColo
     context.fillPath()
 }
 
-func drawIcon(_ side: Int) throws -> Data {
+func drawIcon(_ side: Int, macStyle: Bool = false) throws -> Data {
     let space = CGColorSpaceCreateDeviceRGB()
     guard let context = CGContext(
         data: nil, width: side, height: side,
@@ -38,8 +38,21 @@ func drawIcon(_ side: Int) throws -> Data {
     // All design units use a 1024 × 1024 canvas.
     let scale = CGFloat(side) / 1024
     context.scaleBy(x: scale, y: scale)
-    context.setFillColor(color(0.075, 0.19, 0.20))
-    context.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024))
+    let background = color(0.075, 0.19, 0.20)
+    if macStyle {
+        // macOS Dock icons carry their own rounded-square silhouette.
+        // Leave transparent space outside it rather than shipping a square.
+        rounded(context,
+                CGRect(x: 64, y: 64, width: 896, height: 896),
+                radius: 194, fill: background)
+        context.saveGState()
+        context.translateBy(x: 64, y: 64)
+        context.scaleBy(x: 896.0 / 1024.0, y: 896.0 / 1024.0)
+    } else {
+        // iOS applies the Home Screen icon mask itself; don't bake it in.
+        context.setFillColor(background)
+        context.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024))
+    }
 
     // Two tile columns suggest the pause mark. Splits provide the physical
     // Vestaboard character without adding illegible letters or decoration.
@@ -47,7 +60,7 @@ func drawIcon(_ side: Int) throws -> Data {
     let lower = color(0.850, 0.873, 0.846)
     let seam = color(0.54, 0.62, 0.60)
     for x in [307.0, 563.0] {
-        for y in [240.0, 416.0, 592.0] {
+        for y in [255.0, 431.0, 607.0] {
             let tile = CGRect(x: x, y: y, width: 154, height: 162)
             rounded(context, tile, radius: 14, fill: cream)
             context.saveGState()
@@ -64,6 +77,8 @@ func drawIcon(_ side: Int) throws -> Data {
         }
     }
 
+    if macStyle { context.restoreGState() }
+
     guard let image = context.makeImage(),
           let png = NSBitmapImageRep(cgImage: image).representation(
               using: .png, properties: [:]
@@ -73,12 +88,12 @@ func drawIcon(_ side: Int) throws -> Data {
     return png
 }
 
-func write(_ path: String, side: Int) throws {
+func write(_ path: String, side: Int, macStyle: Bool = false) throws {
     let file = root.appendingPathComponent(path)
     try FileManager.default.createDirectory(
         at: file.deletingLastPathComponent(), withIntermediateDirectories: true
     )
-    try drawIcon(side).write(to: file, options: .atomic)
+    try drawIcon(side, macStyle: macStyle).write(to: file, options: .atomic)
     print("Generated \(path) (\(side) px)")
 }
 
@@ -87,8 +102,8 @@ for (base, scale) in [(16,1),(16,2),(32,1),(32,2),
                       (128,1),(128,2),(256,1),(256,2),(512,1),(512,2)] {
     try write(
         "macos/App/Assets.xcassets/AppIcon.appiconset/mac-\(base)-\(scale)x.png",
-        side: base * scale
+        side: base * scale, macStyle: true
     )
 }
-try write("browser-extension/icon48.png", side: 48)
-try write("browser-extension/icon128.png", side: 128)
+try write("browser-extension/icon48.png", side: 48, macStyle: true)
+try write("browser-extension/icon128.png", side: 128, macStyle: true)
