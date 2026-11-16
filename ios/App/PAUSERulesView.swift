@@ -91,7 +91,7 @@ struct PAUSERulesView: View {
                 Text("This is cumulative time per day, not one uninterrupted session. Reminder style changes the wording, not which apps are monitored.")
             }
 
-            Section("Preview") {
+            Section {
                 Label {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(model.category.title + " reminder")
@@ -104,6 +104,8 @@ struct PAUSERulesView: View {
                     Image(systemName: model.category.icon)
                         .foregroundStyle(PAUSEPalette.tint)
                 }
+            } header: {
+                PAUSESectionHeading(title: "Preview")
             }
 
             Section {
