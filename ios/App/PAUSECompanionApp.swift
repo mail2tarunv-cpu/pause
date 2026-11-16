@@ -44,19 +44,26 @@ struct PAUSERootView: View {
 
     var body: some View {
         TabView {
-            PAUSEHomeView(model: model)
-                .tabItem { Label("Today", systemImage: "square.grid.2x2") }
+            NavigationStack {
+                PAUSEHomeView(model: model)
+            }
+            .tabItem { Label("Today", systemImage: "chart.bar.xaxis") }
 
-            PAUSERulesView(model: model)
-                .tabItem { Label("Rules", systemImage: "slider.horizontal.3") }
+            NavigationStack {
+                PAUSERulesView(model: model)
+            }
+            .tabItem { Label("Rules", systemImage: "slider.horizontal.3") }
 
-            PAUSEBoardView(model: model)
-                .tabItem { Label("Board", systemImage: "rectangle.on.rectangle") }
+            NavigationStack {
+                PAUSEBoardView(model: model)
+            }
+            .tabItem { Label("Board", systemImage: "rectangle.grid.1x2") }
 
-            PAUSESettingsView(model: model)
-                .tabItem { Label("Settings", systemImage: "gearshape") }
+            NavigationStack {
+                PAUSESettingsView(model: model)
+            }
+            .tabItem { Label("Settings", systemImage: "gearshape") }
         }
-        .tint(PAUSEPalette.ink)
-        .preferredColorScheme(.light)
+        .tint(PAUSEPalette.tint)
     }
 }
