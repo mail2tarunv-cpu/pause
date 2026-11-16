@@ -1,59 +1,69 @@
-# PAUSE
+# PAUSE — Less screen. More life.
 
-**An ambient attention companion — built around a digital split-flap display.**
+A privacy-first attention ecosystem: native iPhone + Mac companions, a browser domain bridge, and a connected digital split-flap Vestaboard.
 
-PAUSE is an experiment in making screen time more intentional, without blocking you or turning every moment into another dashboard.
+## What exists in `main`
 
-## iPhone app — start here
+| Component | Source | Current status |
+|---|---|---|
+| iOS app | [`ios/`](ios/) | SwiftUI app, Screen Time report/monitor extensions, optional cloud sign-in. Simulator build checks pass; physical-device authorization unverified |
+| Native macOS app | [`macos/`](macos/) | SwiftUI menu-bar companion with foreground app tracking, idle exclusion, per-app local history, opt-in cloud categories. Xcode CI compiles |
+| Chrome / Chromium extension | [`browser-extension/`](browser-extension/) | MV3 extension sends hostname-only active-site observations to the paired Mac over localhost. Not yet field-tested |
+| Secure cloud schema | [`supabase/schema.sql`](supabase/schema.sql) | Four owner-isolated RLS tables. **Not applied to a hosted PAUSE project yet** |
+| Cloud board controller | [`cloud.html`](cloud.html) | Browser UI for account login, cloud board messages, aggregate usage and device listing; needs provisioned Supabase project |
+| Digital Vestaboard | [`index.html`](index.html) | Existing animated 6 × 22 display, local and optional authenticated cloud receiver |
+| Legacy Mac relay | [`relay.py`](relay.py) | Old local phone controller, no ActivityWatch required for board commands |
+| Legacy ActivityWatch connector | [`bridge.py`](bridge.py) | Preserved only for compatibility; **not required for new Mac/iPhone tracking** |
 
-**Native SwiftUI iPhone app source is now in [`ios/`](ios/).**
+## Where to start
 
-The new iPhone-first app has:
-- **Today** — a real, privacy-protected iPhone Screen Time report (rendered in Apple's Device Activity Report extension).
-- **Rules** — permission request, Apple's app/site/category picker, a daily threshold, and tone selection.
-- **Notifications** — local, gentle reminders when the selected daily activity threshold is reached.
-- **Board** — custom message composition and a 6×22 split-flap preview; optional remote sending to a paired Mac board.
-- **Settings** — monitoring controls, permission status, deletion of local PAUSE event history, and disconnection.
+**Native Mac:** [macos/README.md](macos/README.md) — generate Xcode project, launch the app, verify foreground and idle tracking.
 
-**Install instructions:** [ios/README.md](ios/README.md). You'll need Xcode, a signing team that supports the Family Controls capability, and a physical iPhone. The native app is source code that still requires Apple signing and real-device testing, not an App Store download or compiled IPA.
+**Browser extension:** [browser-extension/README.md](browser-extension/README.md) — load unpacked in Chrome and pair it to the Mac via its 48-character token. Only hostname snapshots go to Mac; no URL paths, page titles or browsing history.
 
-**No ActivityWatch is necessary for the iPhone app.** We haven't built the native Mac tracker yet.
+**New cloud sync:** [supabase/README.md](supabase/README.md) — create a dedicated PAUSE project, install [the RLS schema](supabase/schema.sql), then configure project URL and **public publishable key** on each signed-in device. Cloud sync is off by default.
 
-## Web Vestaboard / prototype
+**iPhone:** [ios/README.md](ios/README.md) — install with Xcode and a properly entitled Apple signing team. iOS Screen Time remains inside Apple-managed privacy-protected extensions; PAUSE can sync generic threshold events but cannot export unrestricted app-by-app usage data.
 
-The original digital split-flap board remains in [`index.html`](index.html). It has:
-- 6 rows × 22 columns, animated tile flipping, presets and custom messages.
-- V2 attention UI and clearly labeled demo mode.
-- A local network controller in [`controller.html`](controller.html).
+**Cloud controller:** Open `/cloud.html` on the existing Vercel PAUSE domain. The animated board has a **Cloud** button for an account-owned display. This will only work after the backend is provisioned and authenticated.
 
-To control the board from your iPhone on a trusted private network while we build the native Mac app:
+## Data flow
 
-```bash
-git clone https://github.com/mail2tarunv-cpu/pause.git
-cd pause
-python3 relay.py --lan
+```
+Mac foreground apps -> native Mac tracker -----+
+                          ^                    |
+Chrome / Chromium extension -- localhost ------+--> local app/category counts
+                                               |
+                              explicit opt-in daily category totals
+                                               |
+                                               v
+                            Supabase Auth + RLS database
+                                               ^
+                                               |
+iOS Screen Time -> protected report extension  | (report never uploaded)
+                 -> generic threshold events --+ (only with consent)
+                                               |
+                          authenticated latest board message
+                                               |
+                animated 6 x 22 web Vestaboard / native previews
 ```
 
-Open `http://127.0.0.1:8765` on the Mac. From your iPhone on the same Wi-Fi, visit `http://MAC-IP:8765/controller` and enter the pairing key printed in Terminal.
+## Privacy boundaries
 
-This uses unencrypted local HTTP, so **do not expose it to the internet or use untrusted Wi-Fi**. The paired control flow does **not** require ActivityWatch.
+- Mac foreground tracking requires **no ActivityWatch** and does not capture window titles, screenshots, keystrokes or URL paths.
+- Website tracking is local only and requires an opt-in paired Chrome/Chromium extension. Safari-specific domains are not yet supported.
+- Mac uploads: **daily category totals only**. App/site histories stay on your Mac.
+- iPhone uploads: **generic threshold events only**. Apple-protected Screen Time data never goes to Supabase.
+- Cross-device sync and automatic forwarding are opt-in. PAUSE's new database schema restricts each row to its owner using Supabase Row Level Security.
+- Native OAuth/signing, browser extension pairing, and hosted RLS still require real-world integration tests.
+- Never use a service-role key in a public client, expose the old local HTTP relay to the internet, or share pairing secrets.
 
-### Older ActivityWatch integration
+## Verification
 
-The earlier `bridge.py` and V2 activity code remain in the repository for historical compatibility only. They were built for an earlier Mac prototype, not for the new iPhone app. ActivityWatch is **not** a requirement for the new architecture. We can retire this code after the native Mac app replaces it.
+GitHub Actions checks: [Python / JS / schema privacy validation](.github/workflows/validate.yml), [iOS Simulator compile](.github/workflows/ios-build.yml), and [native macOS compile](.github/workflows/macos-build.yml).
 
-## What we are not claiming yet
+A passing build is **not** evidence that the end-to-end system has been installed, authorized, paired or tested on your Mac and iPhone.
 
-- The native iOS app has **not been signed or tested on the user's physical iPhone**.
-- iOS Screen Time uses Apple's private, sandboxed report extension. We cannot upload unrestricted identifiable iPhone activity histories to a database.
-- Automatic iPhone-to-Mac delivery from a background monitor extension is best effort, not guaranteed. It is disabled by default until opted in.
-- One selected app/site/category group and one **cumulative daily** usage threshold are implemented. Session-aware AI and per-app conditional rules are future work.
-- No AI provider, native Mac tracker, cloud account, or cross-device sync is connected yet.
-
-## Technical checks
-
-- Python aggregation and local controller tests: `python3 -m unittest discover -s tests -v`
-- JavaScript: `node --check v2.js && node --check remote.js`
-- iOS native compile: [GitHub Actions — Build PAUSE for iPhone](../../actions/workflows/ios-build.yml) (macOS runner, XcodeGen, iOS Simulator SDK; not a substitute for physical-device testing)
+Follow the [full integration test plan](docs/INTEGRATION-TESTS.md) to test each boundary before refining behavior.
 
 This is an independent concept prototype, not affiliated with or endorsed by Vestaboard.
