@@ -358,7 +358,7 @@ struct MacDashboard: View {
             GroupBox {
                 VStack(alignment: .leading, spacing: 15) {
                     MacBoardPreview(message: activity.cloudBoardMessage ??
-                        "🟦  🟨  🟧  🟦  🟨  🟧  🟦  🟨\n🟩  🟥  🟪  🟩  🟥  🟪  🟩  🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨  🟧  🟦  🟨  🟧  🟦  🟨  🟧\n🟪  🟩  🟥  🟪  🟩  🟥  🟪  🟩")
+                        "🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 \n 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 \n 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩")
                     HStack {
                         Label(cloud.syncEnabled ? "Cloud polling enabled" : "Local preview",
                               systemImage: "rectangle.on.rectangle")
