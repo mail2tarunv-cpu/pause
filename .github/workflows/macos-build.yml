@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install XcodeGen
         run: brew install xcodegen
+      - name: Render PAUSE launcher icon assets
+        run: swift scripts/generate_app_icons.swift
       - name: Generate macOS Xcode project
         run: |
           cd macos
