@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PAUSEBoardView: View {
     @ObservedObject var model: PAUSEModel
+    @ObservedObject private var cloud = PAUSECloud.shared
 
     var body: some View {
         PAUSEPage {
@@ -140,6 +141,32 @@ struct PAUSEBoardView: View {
                     .font(.system(size: 10))
                     .foregroundStyle(PAUSEPalette.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+
+            PAUSECard {
+                HStack {
+                    PAUSEKicker(text: "04 / Cloud Vestaboard")
+                    Spacer()
+                    PAUSEStatusPill(text: cloud.signedIn ? "Signed in" : "Not connected", positive: cloud.signedIn)
+                }
+                Text("Send to your board from anywhere.")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Use the same PAUSE cloud account across your devices. The board receives messages over HTTPS, without needing the old Python relay.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(PAUSEPalette.secondary)
+                Button("Send message through cloud") {
+                    Task { await cloud.sendBoard(model.boardDraft) }
+                }
+                .buttonStyle(PAUSEButton())
+                .disabled(!cloud.signedIn)
+                Button("Clear cloud board") {
+                    Task { await cloud.sendBoard(nil) }
+                }
+                .buttonStyle(PAUSEButton(filled: false))
+                .disabled(!cloud.signedIn)
+                Text(cloud.status)
+                    .font(.system(size: 11))
+                    .foregroundStyle(PAUSEPalette.secondary)
             }
 
             PAUSEStatusNotice(text: model.status)
