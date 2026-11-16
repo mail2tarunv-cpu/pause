@@ -19,19 +19,19 @@ struct PAUSEBoardView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         Label("LIVE PREVIEW", systemImage: "square.grid.3x3.fill")
-                            .font(.caption2.weight(.semibold))
+                            .font(PAUSEType.body(.caption2, strong: true))
                             .tracking(1)
                             .foregroundStyle(.white.opacity(0.65))
                         Spacer()
                         Text("6 × 22")
-                            .font(.caption.monospacedDigit())
+                            .font(PAUSEType.body(.caption))
                             .foregroundStyle(.white.opacity(0.65))
                     }
                     PAUSEFlapPreview(message: model.boardDraft)
                     Text(boardLayout.overflow ?
                          "Message exceeds six rows. Shorten it to send." :
                          "Your message, exactly as it fits on the board.")
-                        .font(.caption)
+                        .font(PAUSEType.body(.caption))
                         .foregroundStyle(boardLayout.overflow ? .orange : .white.opacity(0.65))
                 }
                 .padding(16)
@@ -43,7 +43,7 @@ struct PAUSEBoardView: View {
 
             Section {
                 TextEditor(text: $model.boardDraft)
-                    .font(.body.monospaced())
+                    .font(PAUSEType.body())
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .scrollContentBackground(.hidden)
@@ -61,7 +61,7 @@ struct PAUSEBoardView: View {
                     Text("\(model.boardDraft.count) / 280")
                         .monospacedDigit()
                 }
-                .font(.caption)
+                .font(PAUSEType.body(.caption))
                 .foregroundStyle(.secondary)
             } header: {
                 Text("Compose")
@@ -90,7 +90,7 @@ struct PAUSEBoardView: View {
                 }
                 .disabled(!cloud.signedIn)
                 Text(cloud.status)
-                    .font(.footnote)
+                    .font(PAUSEType.body(.footnote))
                     .foregroundStyle(.secondary)
             }
 
@@ -141,8 +141,10 @@ struct PAUSEBoardView: View {
             .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(PAUSEPalette.background)
         .navigationTitle("Board")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -205,8 +207,8 @@ struct PAUSEFlapPreview: View {
                             .fill(.black.opacity(0.55))
                             .frame(height: 1)
                         Text(tiles[index])
-                            .font(.system(size: max(7, cell * 0.60),
-                                          weight: .medium, design: .monospaced))
+                            .font(.custom("DMMono-Medium", size: max(7, cell * 0.60)))
+
                             .foregroundStyle(.white.opacity(0.94))
                             .minimumScaleFactor(0.5)
                             .lineLimit(1)
