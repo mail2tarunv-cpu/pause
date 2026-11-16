@@ -1,186 +1,148 @@
 import SwiftUI
 import FamilyControls
 
+/// Rules use the same grouped forms and pickers people know from iOS Settings.
 struct PAUSERulesView: View {
     @ObservedObject var model: PAUSEModel
-    @State private var picking = false
+    @State private var choosingApps = false
 
     var body: some View {
-        PAUSEPage {
-            PAUSEHeader(
-                eyebrow: "Your rules",
-                headline: "A nudge,\nnot a wall.",
-                description: "Choose exactly what to monitor, when PAUSE should intervene, and how it should sound."
-            )
+        Form {
+            Section {
+                PAUSEIntro(
+                    title: "A nudge, not a wall.",
+                    subtitle: "Choose what PAUSE watches and when it should check in.",
+                    symbol: "leaf"
+                )
+            }
+            .listRowBackground(Color.clear)
 
-            PAUSECard {
+            Section {
                 HStack {
-                    PAUSEKicker(text: "01 / iPhone access")
+                    Label("Screen Time", systemImage: "hourglass")
                     Spacer()
-                    PAUSEStatusPill(
-                        text: model.screenTimeAuthorized ? "Authorized" : "Required",
-                        positive: model.screenTimeAuthorized
-                    )
+                    Text(model.screenTimeAuthorized ? "Allowed" : "Required")
+                        .foregroundStyle(model.screenTimeAuthorized ? Color.green : Color.secondary)
                 }
-                Text("Screen Time")
-                    .font(.system(size: 22, weight: .medium, design: .rounded))
-                Text("Apple asks for your permission. Your selected apps stay private on this iPhone.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                    .lineSpacing(3)
                 if !model.screenTimeAuthorized {
                     Button("Allow Screen Time access") {
                         Task { await model.authorizeScreenTime() }
                     }
-                    .buttonStyle(PAUSEButton())
                 }
-
-                Rectangle().fill(PAUSEPalette.line).frame(height: 1)
-
                 HStack {
-                    Image(systemName: "bell.badge")
-                        .foregroundStyle(PAUSEPalette.ink)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Gentle notifications")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("A check-in when a limit is reached")
-                            .font(.system(size: 11))
-                            .foregroundStyle(PAUSEPalette.secondary)
-                    }
+                    Label("Notifications", systemImage: "bell")
                     Spacer()
-                    Button(model.notificationAuthorized ? "Enabled" : "Enable") {
+                    Text(model.notificationAuthorized ? "Allowed" : "Off")
+                        .foregroundStyle(.secondary)
+                }
+                if !model.notificationAuthorized {
+                    Button("Enable notifications") {
                         Task { await model.requestNotifications() }
                     }
-                    .font(.system(size: 12, weight: .semibold))
-                    .disabled(model.notificationAuthorized)
                 }
+            } header: {
+                Text("Permissions")
+            } footer: {
+                Text("Apple controls the app-selection picker and private Screen Time reports.")
             }
 
-            PAUSECard {
-                PAUSEKicker(text: "02 / Choose apps and sites")
-
+            Section {
                 Button {
-                    model.saveSelection()
-                    picking = true
+                    choosingApps = true
                 } label: {
-                    HStack(spacing: 14) {
-                        Image(systemName: "square.grid.3x3")
-                            .font(.system(size: 22))
-                            .frame(width: 39, height: 39)
-                            .background(PAUSEPalette.background, in: RoundedRectangle(cornerRadius: 10))
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Select what to monitor")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("\(model.selection.applicationTokens.count) apps · \(model.selection.categoryTokens.count) categories · \(model.selection.webDomainTokens.count) websites")
-                                .font(.system(size: 11))
-                                .foregroundStyle(PAUSEPalette.secondary)
-                        }
-                        Spacer(minLength: 4)
+                    HStack(spacing: 10) {
+                        Label("Choose apps and sites", systemImage: "square.grid.2x2")
+                        Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
                     }
-                    .foregroundStyle(PAUSEPalette.ink)
                 }
-                .buttonStyle(.plain)
                 .disabled(!model.screenTimeAuthorized)
-                .familyActivityPicker(isPresented: $picking, selection: $model.selection)
-                .onChange(of: model.selection) { _, _ in
-                    model.saveSelection()
-                }
 
-                Text("Only selected apps, categories, and websites count towards this rule. Apple hides their exact identities from PAUSE.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                LabeledContent("Selected activity", value: "\(model.selectionCount) items")
+            } header: {
+                Text("Activity")
+            } footer: {
+                Text("Only selected apps, categories and websites contribute to the daily threshold.")
             }
 
-            PAUSECard {
-                PAUSEKicker(text: "03 / When should we check in?")
-                Text("Daily usage threshold")
-                    .font(.system(size: 15, weight: .medium))
-                HStack(alignment: .firstTextBaseline) {
-                    Text("\(model.thresholdMinutes)")
-                        .font(.system(size: 54, weight: .medium, design: .rounded))
-                        .tracking(-2.2)
-                    Text("min")
-                        .font(.system(size: 14))
-                        .foregroundStyle(PAUSEPalette.secondary)
-                    Spacer()
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 23))
-                        .foregroundStyle(PAUSEPalette.secondary)
-                }
-                HStack(spacing: 10) {
-                    Button {
-                        model.thresholdMinutes = max(5, model.thresholdMinutes - 5)
-                    } label: {
-                        Image(systemName: "minus")
-                            .frame(maxWidth: .infinity).padding(.vertical, 13)
+            Section {
+                Stepper(
+                    value: $model.thresholdMinutes,
+                    in: 5...240,
+                    step: 5
+                ) {
+                    LabeledContent("Daily limit") {
+                        Text("\(model.thresholdMinutes) min")
+                            .monospacedDigit()
+                            .fontWeight(.semibold)
                     }
-                    .buttonStyle(PAUSEButton(filled: false))
-
-                    Button {
-                        model.thresholdMinutes = min(240, model.thresholdMinutes + 5)
-                    } label: {
-                        Image(systemName: "plus")
-                            .frame(maxWidth: .infinity).padding(.vertical, 13)
-                    }
-                    .buttonStyle(PAUSEButton(filled: false))
                 }
-                Text("The limit counts selected activity across each day. It is not a timer that resets each time you open an app.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Picker("Reminder style", selection: $model.category) {
+                    ForEach(PAUSECategory.allCases) { category in
+                        Label(category.title, systemImage: category.icon).tag(category)
+                    }
+                }
+                .pickerStyle(.navigationLink)
+            } header: {
+                Text("Check-in")
+            } footer: {
+                Text("This is cumulative time per day, not one uninterrupted session. Reminder style changes the wording, not which apps are monitored.")
             }
 
-            PAUSECard {
-                PAUSEKicker(text: "04 / Choose your nudge")
-                ForEach(PAUSECategory.allCases) { category in
-                    Button {
-                        model.category = category
-                    } label: {
-                        HStack(alignment: .top, spacing: 13) {
-                            Image(systemName: category.icon)
-                                .font(.system(size: 19))
-                                .frame(width: 30)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(category.title)
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text(category.detail)
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(PAUSEPalette.secondary)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            Spacer(minLength: 3)
-                            Image(systemName: model.category == category ? "largecircle.fill.circle" : "circle")
-                                .font(.system(size: 19))
-                        }
-                        .foregroundStyle(PAUSEPalette.ink)
-                        .padding(.vertical, 9)
+            Section("Preview") {
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(model.category.title + " reminder")
+                            .font(.body.weight(.medium))
+                        Text(model.category.detail)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
-                    .buttonStyle(.plain)
+                } icon: {
+                    Image(systemName: model.category.icon)
+                        .foregroundStyle(PAUSEPalette.tint)
                 }
-                Text("This label chooses the nudge wording. The actual apps are whatever you selected above.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(PAUSEPalette.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            VStack(spacing: 10) {
-                Button(model.monitoring ? "Update monitoring" : "Start monitoring") {
+            Section {
+                Button {
                     model.startMonitoring()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label(model.monitoring ? "Update monitoring" : "Start monitoring",
+                              systemImage: model.monitoring ? "checkmark.circle" : "play.fill")
+                        Spacer()
+                    }
                 }
-                .buttonStyle(PAUSEButton())
+                .fontWeight(.semibold)
                 .disabled(!model.screenTimeAuthorized || !model.hasSelection)
 
                 if model.monitoring {
-                    Button("Pause monitoring") {
+                    Button(role: .destructive) {
                         model.stopMonitoring()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Label("Stop monitoring", systemImage: "pause.fill")
+                            Spacer()
+                        }
                     }
-                    .buttonStyle(PAUSEButton(filled: false))
                 }
+            } footer: {
+                Text(model.monitoring ? "Monitoring is enabled." : "Monitoring is currently paused.")
             }
-            PAUSEStatusNotice(text: model.status)
+
+            Section {
+                PAUSEStatusNotice(text: model.status)
+            }.listRowBackground(Color.clear)
         }
+        .formStyle(.grouped)
+        .navigationTitle("Rules")
+        .navigationBarTitleDisplayMode(.large)
+        .familyActivityPicker(isPresented: $choosingApps, selection: $model.selection)
+        .onChange(of: model.selection) { _, _ in model.saveSelection() }
     }
 }
