@@ -1,1 +1,65 @@
-:root{font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif;color:#242924;background:#f3f2ee}*{box-sizing:border-box}body{margin:0;width:340px}main{padding:22px}.top{display:flex;align-items:baseline;justify-content:space-between}.top strong{font-size:13px;letter-spacing:.26em}.top span{font-size:9px;letter-spacing:.1em;color:#92978d}h1{font-weight:500;letter-spacing:-.06em;font-size:30px;line-height:1.06;margin:26px 0 12px}.description{font-size:12px;color:#82877c;line-height:1.6;margin:0 0 22px}label{display:block;font-size:9px;letter-spacing:.11em;font-weight:700;margin-bottom:8px}input[type=password]{border:1px solid #d5d6cf;border-radius:7px;background:#fff;font:12px ui-monospace,monospace;padding:11px;width:100%;outline:none}.row{display:flex;gap:7px;margin-top:10px}.row button{border:1px solid #dadad3;border-radius:7px;padding:11px 14px;cursor:pointer;font-weight:600;font-size:12px;background:transparent}.row button.primary{background:#242924;color:white;border-color:#242924;flex:1}.toggle{margin:25px 0 18px;border-block:1px solid #deded8;padding:16px 0;display:flex;justify-content:space-between;align-items:center}.toggle b,.toggle small{display:block}.toggle b{font-size:13px}.toggle small{font-size:11px;color:#858a81;margin-top:4px}.status{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:10px}#led{height:8px;width:8px;border-radius:50%;background:#d6ab61}#led.ok{background:#589065}.small{font-size:11px;color:#92968e;margin-bottom:20px}a{color:#565d53;font-size:11px;text-underline-offset:3px}
+/* Browser UI follows macOS system appearance, typography and controls.
+   The split-flap display remains PAUSE's only highly custom visual language. */
+:root {
+  color-scheme: light dark;
+  font: 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --surface: #f5f5f7;
+  --field: #fff;
+  --ink: #1d1d1f;
+  --secondary: #6e6e73;
+  --line: rgba(60,60,67,.16);
+  --action: #007aff;
+  --success: #34c759;
+}
+* { box-sizing: border-box; }
+body { margin: 0; width: 348px; color: var(--ink); background: var(--surface); }
+main { padding: 22px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.top strong { font-size: 12px; font-weight: 700; letter-spacing: .11em; }
+.top span { font-size: 10px; color: var(--secondary); }
+h1 { font-size: 28px; line-height: 1.1; letter-spacing: -.035em; font-weight: 650; margin: 22px 0 10px; }
+.description { color: var(--secondary); line-height: 1.5; font-size: 12px; margin: 0 0 20px; }
+label { display:block; font-size: 11px; color: var(--secondary); font-weight: 600; margin-bottom: 8px; }
+input[type=password] {
+  appearance: none; width: 100%; min-height: 36px; padding: 8px 11px;
+  border: 1px solid var(--line); border-radius: 9px; outline-offset: 3px;
+  background: var(--field); color: var(--ink);
+  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+input:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--action); outline-offset: 2px;
+}
+.row { display: flex; gap: 8px; margin-top: 12px; }
+.row button {
+  min-height: 36px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--field); color: var(--ink); padding: 8px 12px;
+  font: 600 12px -apple-system, system-ui, sans-serif; cursor: pointer;
+}
+.row button.primary { flex: 1; background: var(--action); color: white; border-color: var(--action); }
+.row button:hover { filter: brightness(.96); }
+.toggle {
+  margin: 22px 0 18px; padding: 16px 0; border-block: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.toggle b, .toggle small { display: block; }
+.toggle b { font-size: 13px; font-weight: 600; }
+.toggle small { font-size: 11px; color: var(--secondary); margin-top: 3px; }
+.toggle input { accent-color: var(--action); cursor: pointer; width: 17px; height: 17px; }
+.status { display: flex; align-items:center; gap:8px; font-size: 12px; margin-bottom: 9px; }
+#led { width: 8px; height: 8px; border-radius: 50%; background: #f0ad4e; flex-shrink: 0; }
+#led.ok { background: var(--success); }
+.small { color: var(--secondary); font-size: 11px; margin-bottom: 20px; }
+a { color: var(--action); text-underline-offset: 3px; font-size: 12px; }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1c1c1e;
+    --field: #2c2c2e;
+    --ink: #f5f5f7;
+    --secondary: #aeaeb2;
+    --line: rgba(255,255,255,.2);
+    --action: #0a84ff;
+    --success: #30d158;
+  }
+  .row button:hover { filter: brightness(1.1); }
+}
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition:none!important;animation:none!important; } }
