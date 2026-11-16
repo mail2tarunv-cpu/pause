@@ -12,44 +12,44 @@
     cells.push(tile);
   }
 
+  const colors = {'🟥':'red','🟧':'orange','🟨':'yellow','🟩':'green','🟦':'blue','🟪':'violet','⬜':'white'};
   function boardFormat(value) {
     const rows = [];
-    for (const line of (value || "").toUpperCase().split("\n")) {
-      if (!line.length) { rows.push(""); continue; }
-      let current = "";
-      for (const word of line.split(/\s+/).filter(Boolean)) {
-        if (word.length > 22) {
-          if (current) { rows.push(current); current = ""; }
-          for (let offset = 0; offset < word.length; offset += 22) {
-            rows.push(word.slice(offset, offset + 22));
-          }
-        } else if ((current ? current.length + 1 : 0) + word.length > 22) {
-          rows.push(current);
-          current = word;
-        } else {
-          current += (current ? " " : "") + word;
-        }
+    const cleaned=String(value||'').toUpperCase().replace(/[^A-Z0-9 .,?!+:/&@\\-\\n🟥🟧🟨🟩🟦🟪⬜]/gu,' ');
+    for (const line of cleaned.split('\\n')) {
+      const chars=Array.from(line);
+      if(chars.length===22 && chars.some(ch=>colors[ch])) { rows.push(line); continue; }
+      if (!line.trim()) { rows.push(''); continue; }
+      let current='';
+      for(const word of line.trim().split(/\\s+/)) {
+        const letters=Array.from(word);
+        if(letters.length>22) {
+          if(current) {rows.push(current);current='';}
+          for(let i=0;i<letters.length;i+=22) rows.push(letters.slice(i,i+22).join(''));
+        }else if(Array.from(current).length+(current?1:0)+letters.length>22) {
+          rows.push(current); current=word;
+        }else current+=(current?' ':'')+word;
       }
-      if (current) rows.push(current);
+      if(current)rows.push(current);
     }
-    const active = rows.slice(0, 6);
-    const tiles = Array(132).fill(" ");
-    active.forEach((line, i) => {
-      const start = (Math.floor((6 - active.length) / 2) + i) * 22 +
-        Math.floor((22 - line.length) / 2);
-      for (let j = 0; j < line.length && j < 22; j++) {
-        tiles[start + j] = line[j];
-      }
+    const tiles=Array(132).fill(' '),active=rows.slice(0,6);
+    active.forEach((line,i)=>{
+      const letters=Array.from(line);
+      const start=(Math.floor((6-active.length)/2)+i)*22+Math.floor((22-letters.length)/2);
+      letters.forEach((ch,j)=>{if(j<22)tiles[start+j]=ch;});
     });
-    return { tiles, overflow: rows.length > 6 };
+    return {tiles,overflow:rows.length>6};
   }
-
   function preview(value) {
-    const { tiles, overflow } = boardFormat(value);
-    cells.forEach((cell, i) => cell.textContent = tiles[i] === " " ? "" : tiles[i]);
-    $("count").textContent = value.length + " / 280 characters" +
-      (overflow ? " · Preview exceeds six rows" : "");
-    $("send").disabled = overflow || !value.trim();
+    const {tiles,overflow}=boardFormat(value);
+    cells.forEach((cell,i)=>{
+      const ch=tiles[i];
+      if(colors[ch])cell.dataset.color=colors[ch];else delete cell.dataset.color;
+      cell.textContent=ch===' '||colors[ch]?'':ch;
+    });
+    $('count').textContent=Array.from(value).length+' / 280 characters'+
+      (overflow?' · Preview exceeds six rows':'');
+    $('send').disabled=overflow||!value.trim();
     return !overflow;
   }
 
