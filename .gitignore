@@ -9,3 +9,9 @@ DerivedData/
 .env
 .env.*
 !.env.example
+
+# Reproducibly generated from original vector-like Swift icon source
+ios/App/Assets.xcassets/AppIcon.appiconset/*.png
+macos/App/Assets.xcassets/AppIcon.appiconset/*.png
+browser-extension/icon48.png
+browser-extension/icon128.png
