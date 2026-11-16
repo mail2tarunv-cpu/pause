@@ -118,6 +118,9 @@ struct PAUSERulesView: View {
                     }
                 }
                 .fontWeight(.semibold)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .frame(maxWidth: .infinity)
                 .disabled(!model.screenTimeAuthorized || !model.hasSelection)
 
                 if model.monitoring {
