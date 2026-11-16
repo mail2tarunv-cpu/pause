@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light"><title>PAUSE / Cloud controller</title>
+<meta name="color-scheme" content="light dark"><title>PAUSE / Cloud controller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light dark;
@@ -48,11 +50,14 @@ h3{font-size:16px;font-weight:650;margin:12px 0}
 #status{color:#30d158}#status.error{color:#ff6961}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
-</style></head>
+</style>
+<link rel="stylesheet" href="design/pause-theme.css">
+</head>
 <body>
 <header class="mast"><span class="logo">PAUSE <span class="eyebrow">/ REMOTE</span></span><span class="eyebrow">YOUR ATTENTION, YOUR RULES</span></header>
 <main>
 <section>
+<div class="pause-shape-strip" aria-hidden="true"><span class="quarter"></span><span class="disc"></span><span class="triangle"></span><span class="wave"><i></i><i></i><i></i></span><span class="dot"></span></div>
 <div class="eyebrow">A quiet controller for a physical idea</div>
 <h1>Less screen.<br>More life.</h1>
 <p class="sub">Send a message to your Vestaboard from anywhere. Signed-in devices share just board messages and optional daily usage categories.</p>
