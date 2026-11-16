@@ -69,8 +69,7 @@ struct PAUSEDailyScene: DeviceActivityReportScene {
 
 struct PAUSEDailyReportView: View {
     let configuration: PAUSEReportConfiguration
-    private let ink = Color(red: 0.13, green: 0.14, blue: 0.13)
-    private let warm = Color(red: 0.94, green: 0.92, blue: 0.87)
+    private let accent = Color(red: 0.16, green: 0.42, blue: 0.44)
 
     private func duration(_ seconds: TimeInterval) -> String {
         let minutes = Int(seconds / 60)
@@ -79,75 +78,75 @@ struct PAUSEDailyReportView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 18) {
             HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("SCREEN TIME TODAY")
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .tracking(1.8).foregroundStyle(ink.opacity(0.58))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Total today")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                     Text(duration(configuration.total))
-                        .font(.system(size: 40, weight: .medium, design: .rounded))
-                        .tracking(-1.4).foregroundStyle(ink)
+                        .font(.system(.largeTitle, design: .rounded, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
                 }
                 Spacer()
                 Image(systemName: "chart.bar.xaxis")
-                    .font(.system(size: 20, weight: .regular))
-                    .foregroundStyle(ink.opacity(0.4))
+                    .font(.title2)
+                    .foregroundStyle(accent)
+                    .accessibilityHidden(true)
             }
 
             if configuration.total == 0 {
-                Text("No activity has been reported for today yet. Screen Time may need a few minutes to update.")
-                    .font(.system(size: 13)).foregroundStyle(ink.opacity(0.65))
-                    .fixedSize(horizontal: false, vertical: true)
+                Label(
+                    "No activity reported yet. Screen Time can take a few minutes to update.",
+                    systemImage: "hourglass"
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             } else {
                 if !configuration.categories.isEmpty {
-                    Text("BY CATEGORY")
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(1.4).foregroundStyle(ink.opacity(0.55))
+                    Divider()
+                    Text("Categories")
+                        .font(.headline)
                     ForEach(configuration.categories) { entry in
                         usageRow(entry)
                     }
                 }
 
                 if !configuration.apps.isEmpty {
-                    Divider().overlay(ink.opacity(0.1))
-                    Text("MOST USED APPS")
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(1.4).foregroundStyle(ink.opacity(0.55))
+                    Divider()
+                    Text("Most used apps")
+                        .font(.headline)
                     ForEach(configuration.apps) { entry in
                         usageRow(entry)
                     }
                 }
             }
-            Text("Rendered privately by iOS. PAUSE cannot upload the underlying usage report.")
-                .font(.system(size: 10))
-                .foregroundStyle(ink.opacity(0.48))
-                .fixedSize(horizontal: false, vertical: true)
+            Label("Rendered privately by iOS", systemImage: "lock.shield")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .padding(20)
-        .background(warm, in: RoundedRectangle(cornerRadius: 22))
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder private func usageRow(_ entry: PAUSEReportConfiguration.Entry) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 10) {
                 Text(entry.title)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.subheadline)
                     .lineLimit(1)
-                Spacer()
+                Spacer(minLength: 6)
                 Text(duration(entry.duration))
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .font(.subheadline.monospacedDigit().weight(.medium))
+                    .foregroundStyle(.secondary)
             }
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(ink.opacity(0.08))
-                    Capsule()
-                        .fill(ink.opacity(0.7))
-                        .frame(width: max(3, proxy.size.width * min(1, entry.duration / max(configuration.total, 1))))
-                }
-            }
-            .frame(height: 5)
+            ProgressView(value: entry.duration, total: max(configuration.total, 1))
+                .tint(accent)
         }
-        .foregroundStyle(ink)
+        .accessibilityElement(children: .combine)
     }
 }
