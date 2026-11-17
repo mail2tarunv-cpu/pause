@@ -27,7 +27,7 @@ for (const [name, file] of [
   ["Today", home], ["Rules", rules], ["Board", board], ["Settings", settings]
 ]) {
   assert.match(file, /\.navigationTitle\(/, name + " needs a native navigation title");
-  assert.match(file, /\.listStyle\(\.insetGrouped\)|\.formStyle\(\.grouped\)/,
+  assert.match(file, /\.listStyle\(\.insetGrouped\)|Form \{/,
     name + " should use native grouped sections");
   assert.doesNotMatch(file, /PAUSECard|PAUSEKicker|PAUSEHeader|\.background\(Color\(red:/,
     name + " should not use legacy hard-coded card styles");
@@ -43,17 +43,17 @@ assert.match(settings, /SecureField\(/);
 assert.match(report, /ProgressView\(/);
 assert.doesNotMatch(report, /Color\(red: 0\.94, green: 0\.92/,
   "Protected Screen Time report should not force a warm card in Dark Mode");
-assert.match(palette, /0xF7F7F5/);
-assert.match(palette, /SpaceGrotesk-Bold/);
-assert.match(palette, /DMMono-Regular/);
-assert.match(palette, /PAUSEShapeStamp/);
-assert.match(palette, /traits\.userInterfaceStyle/);
+assert.match(palette, /systemGroupedBackground/);
+assert.match(palette, /secondarySystemGroupedBackground/);
+assert.match(palette, /\.system\(style, design: \.default/);
+assert.doesNotMatch(palette, /PAUSEShapeStamp|SpaceGrotesk-Bold/);
 
 assert.match(mac, /NavigationSplitView/);
 assert.match(mac, /\.listStyle\(\.sidebar\)/);
 assert.match(mac, /\.toolbar/);
-assert.match(mac, /Form \{/);
-assert.match(mac, /GroupBox/);
+assert.match(mac, /PAUSEMacPanel/);
+assert.match(mac, /windowBackgroundColor/);
+assert.doesNotMatch(mac, /PAUSEMacShapeStamp\(/);
 assert.match(mac, /ProgressView/);
 assert.match(macApp, /MenuBarExtra/);
 assert.match(macApp, /openWindow\(id: "main"\)/);
@@ -73,4 +73,5 @@ assert.match(load("ios/project.yml"), /ASSETCATALOG_COMPILER_APPICON_NAME: AppIc
 assert.match(load("macos/project.yml"), /ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon/);
 assert.match(app, /symbolRenderingMode/);
 assert.match(macApp, /symbolRenderingMode/);
-console.log("PAUSE UI structural audit passed: iPhone, Mac, SF Symbols and branded app icons.");
+assert.doesNotMatch(macApp, /\.font\(PAUSEMacType\.body\(\)\)/);
+console.log("PAUSE UI structural audit passed: native SF typography, grouped iOS screens, Mac sidebar/panels, SF Symbols and app icons.");
