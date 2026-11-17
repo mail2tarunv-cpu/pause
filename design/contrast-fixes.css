@@ -1,0 +1,253 @@
+/* PAUSE / Accessible contrast system
+ * Loaded last, after the legacy inline rules, editorial theme and board skin.
+ * Explicit specificity prevents the old :where() selectors from producing
+ * dark-on-dark buttons in Dark Mode. No redesign of standard app controls.
+ */
+:root {
+  --ui-primary-bg: #1d1e20;
+  --ui-primary-fg: #f7f6f2;
+  --ui-primary-hover-bg: #34373a;
+  --ui-secondary-bg: #fdfdfb;
+  --ui-secondary-fg: #171819;
+  --ui-secondary-hover-bg: #f0f1ee;
+  --ui-secondary-border: #b8bab5;
+  --ui-field-bg: #ffffff;
+  --ui-field-fg: #191a1b;
+  --ui-field-placeholder: #666965;
+  --ui-focus: #08796d;
+  --ui-helper: #555954;
+  --ui-disabled-bg: #e3e5e0;
+  --ui-disabled-fg: #50544f;
+}
+
+/* Baseline for all buttons across the display, local and cloud controllers.
+   Higher-specificity primary rules below intentionally win. */
+body button,
+body .button,
+body .preset,
+body .minimal-button,
+body .attention-trigger,
+body .icon-button,
+body .close {
+  background: var(--ui-secondary-bg) !important;
+  color: var(--ui-secondary-fg) !important;
+  border-color: var(--ui-secondary-border) !important;
+  -webkit-text-fill-color: var(--ui-secondary-fg);
+  font-family: "DM Mono", ui-monospace, monospace !important;
+  font-weight: 500 !important;
+  line-height: 1.35;
+  text-shadow: none !important;
+}
+body button :is(span,strong,small,.name,.detail,.label),
+body .button :is(span,strong,small,.name,.detail,.label) {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor;
+}
+body .preset small,
+body .preset .detail {
+  color: #515650 !important;
+  -webkit-text-fill-color: #515650;
+  font-weight: 400;
+}
+body button:not(:disabled):hover,
+body .button:not(:disabled):hover,
+body .preset:not(:disabled):hover {
+  background: var(--ui-secondary-hover-bg) !important;
+  color: var(--ui-secondary-fg) !important;
+  border-color: #8c9089 !important;
+}
+body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.secondary),
+         .row button:not(.secondary),button.primary,button#saveConfig,
+         button#signIn,button#send,button#connect,
+         .nudge-actions button:first-child) {
+  background: var(--ui-primary-bg) !important;
+  color: var(--ui-primary-fg) !important;
+  -webkit-text-fill-color: var(--ui-primary-fg) !important;
+  border: 1px solid var(--ui-primary-bg) !important;
+  box-shadow: none;
+}
+body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.secondary),
+         .row button:not(.secondary),button.primary,button#saveConfig,
+         button#signIn,button#send,button#connect,
+         .nudge-actions button:first-child) :is(span,strong,small,.name,.detail) {
+  color: var(--ui-primary-fg) !important;
+  -webkit-text-fill-color: var(--ui-primary-fg) !important;
+}
+body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.secondary),
+         .row button:not(.secondary),button.primary,button#saveConfig,
+         button#signIn,button#send,button#connect,
+         .nudge-actions button:first-child):not(:disabled):hover {
+  background: var(--ui-primary-hover-bg) !important;
+  color: var(--ui-primary-fg) !important;
+  -webkit-text-fill-color: var(--ui-primary-fg) !important;
+  border-color: var(--ui-primary-hover-bg) !important;
+}
+body :is(button,.button,.preset):focus-visible,
+body :is(input,textarea,select):focus-visible {
+  outline: 3px solid var(--ui-focus) !important;
+  outline-offset: 3px;
+}
+body :is(button,.button,.preset):disabled,
+body :is(button,.button,.preset)[aria-disabled="true"] {
+  opacity: 1 !important;
+  background: var(--ui-disabled-bg) !important;
+  border-color: var(--ui-secondary-border) !important;
+  color: var(--ui-disabled-fg) !important;
+  -webkit-text-fill-color: var(--ui-disabled-fg) !important;
+  cursor: not-allowed;
+}
+body :is(button,.button,.preset):disabled :is(span,strong,small),
+body :is(button,.button,.preset)[aria-disabled="true"] :is(span,strong,small) {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+body :is(input:not([type="checkbox"]),textarea,select,.field,.composer) {
+  background: var(--ui-field-bg) !important;
+  color: var(--ui-field-fg) !important;
+  -webkit-text-fill-color: var(--ui-field-fg);
+  border-color: var(--ui-secondary-border) !important;
+  caret-color: var(--ui-focus);
+}
+body :is(input,textarea)::placeholder {
+  color: var(--ui-field-placeholder) !important;
+  opacity: 1;
+}
+body :is(.hint,.group-help,.sub,.caption,.footnote,.notice,.message,.eyebrow,
+         .section,.group-label,.meta,.small,.counter,.description) {
+  color: var(--ui-helper) !important;
+}
+body :is(.panel,.status-card,.stack,.preset,.attention-panel) {
+  border-color: var(--pause-border) !important;
+}
+body .preset { text-align: left; }
+body :is(.icon-button,.close) { min-width: 38px; min-height: 38px; }
+body .attention-switch button,
+body .attention-switch button:not(:disabled):hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--ui-secondary-fg) !important;
+  -webkit-text-fill-color: var(--ui-secondary-fg);
+}
+body .attention-switch button[aria-pressed="true"] {
+  background: var(--ui-secondary-bg) !important;
+  color: var(--ui-secondary-fg) !important;
+  -webkit-text-fill-color: var(--ui-secondary-fg);
+  box-shadow: 0 1px 3px #0002;
+}
+
+/* Compact board glyphs: remove artificial horizontal compression and negative
+   tracking. The printed letter is above the recessed center seam.
+   Scale by the board (not viewport) so the character fits its individual well. */
+.flap-grid .tile .printed-glyph {
+  z-index: 11 !important;
+  color: #f3f2ef !important;
+  font-family: "DM Mono", ui-monospace, monospace !important;
+  font-weight: 500 !important;
+  font-size: clamp(8px, 1.92vw, 27px) !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.08 !important;
+  transform: none !important;
+  text-shadow: 0 1px 1px #0009 !important;
+}
+.flap-grid .tile .glyph {
+  color: #f3f2ef !important;
+  font-size: clamp(8px, 1.92vw, 27px) !important;
+  letter-spacing: -0.02em !important;
+  transform: none !important;
+}
+.flap-grid .tile .seam {
+  z-index: 6 !important;
+  height: 1px !important;
+  top: calc(50% - .5px) !important;
+  background: #0b0c0d !important;
+  box-shadow: 0 1px #5557 !important;
+}
+.flap-grid .tile .hinge { z-index: 9 !important; }
+.flap-grid .tile.color-red .printed-glyph,
+.flap-grid .tile.color-orange .printed-glyph,
+.flap-grid .tile.color-yellow .printed-glyph,
+.flap-grid .tile.color-green .printed-glyph,
+.flap-grid .tile.color-blue .printed-glyph,
+.flap-grid .tile.color-violet .printed-glyph,
+.flap-grid .tile.color-white .printed-glyph,
+.flap-grid .tile[class*="color-"] .glyph {
+  color: transparent !important;
+}
+.board .tile b,
+.board .tile:not(:has(b)) {
+  color: #f3f2ef !important;
+  font-family: "DM Mono", ui-monospace, monospace !important;
+  letter-spacing: -0.02em !important;
+  font-size: clamp(7px, 1vw, 16px) !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px #0008 !important;
+}
+.board .tile b { transform: none !important; z-index: 6 !important; }
+.board .tile::after { height: 1px !important; z-index: 4 !important; }
+/* On the cloud controller the tile is its own text node rather than <b>. */
+.board .tile[data-color] {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.pause-board-page .board-shell .flap-grid .tile .printed-glyph {
+  color: #f3f2ef !important;
+}
+
+/* The board gallery deliberately stays light even if system Dark Mode is on. */
+body.pause-board-page {
+  --ui-primary-bg: #1d1e20;
+  --ui-primary-fg: #f7f6f2;
+  --ui-secondary-bg: #fdfdfb;
+  --ui-secondary-fg: #171819;
+  --ui-secondary-hover-bg: #f0f1ee;
+  --ui-secondary-border: #b8bab5;
+  --ui-field-bg: #fff;
+  --ui-field-fg: #191a1b;
+  --ui-field-placeholder: #666965;
+  --ui-focus: #08796d;
+  --ui-helper: #555954;
+  --ui-disabled-bg: #e3e5e0;
+  --ui-disabled-fg: #50544f;
+}
+@media (max-width: 850px) {
+  .flap-grid .tile .printed-glyph,
+  .flap-grid .tile .glyph { font-size: clamp(7px, 1.80vw, 14px) !important; }
+  .board .tile b,
+  .board .tile:not(:has(b)) { font-size: clamp(7px, 1.12vw, 13px) !important; }
+}
+@media (max-width: 520px) {
+  .flap-grid .tile .printed-glyph,
+  .flap-grid .tile .glyph { font-size: clamp(7px, 2.13vw, 10px) !important; }
+  .board .tile b,
+  .board .tile:not(:has(b)) { font-size: clamp(6px, 1.5vw, 9px) !important; }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ui-primary-bg: #ededeb;
+    --ui-primary-fg: #171819;
+    --ui-primary-hover-bg: #ffffff;
+    --ui-secondary-bg: #343639;
+    --ui-secondary-fg: #f5f5f2;
+    --ui-secondary-hover-bg: #424548;
+    --ui-secondary-border: #696d71;
+    --ui-field-bg: #2a2c2f;
+    --ui-field-fg: #faf9f6;
+    --ui-field-placeholder: #c2c6c3;
+    --ui-focus: #80e2d5;
+    --ui-helper: #c4c6c1;
+    --ui-disabled-bg: #424548;
+    --ui-disabled-fg: #ecece9;
+  }
+  body .preset small,body .preset .detail {
+    color: #d1d4cf !important;
+    -webkit-text-fill-color: #d1d4cf;
+  }
+  body.pause-board-page .preset small,
+  body.pause-board-page .preset .detail {
+    color: #515650 !important;
+    -webkit-text-fill-color: #515650;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body button,body .button { transition: none !important; }
+}
