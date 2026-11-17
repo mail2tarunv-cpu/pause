@@ -98,7 +98,6 @@ struct MacDashboard: View {
             Text(detail)
                 .font(PAUSEMacType.body(.subheadline))
                 .foregroundStyle(.secondary)
-                .font(PAUSEMacType.body())
         }
         .padding(.bottom, 3)
     }
@@ -467,16 +466,16 @@ private struct MacBoardPreview: View {
                             )
                             Rectangle()
                                 .fill(Color.black.opacity(0.85))
-                                .frame(height: max(1, width * 0.0016))
+                                .frame(height: max(0.6, width * 0.0010))
                             if !["🟥","🟧","🟨","🟩","🟦","🟪"].contains(glyph) {
                                 Text(glyph)
                                     .font(.custom(
                                         "DMMono-Medium",
-                                        size: max(6, cellWidth * 0.61)
+                                        size: max(8, cellWidth * 0.74)
                                     ))
-                                    .minimumScaleFactor(0.55)
+                                    .minimumScaleFactor(0.80)
                                     .lineLimit(1)
-                                    .foregroundStyle(Color(white: 0.94))
+                                    .foregroundStyle(Color(red: 0.96, green: 0.95, blue: 0.93))
                             }
                         }
                         .frame(width: cellWidth, height: cellHeight)
