@@ -460,7 +460,7 @@ struct MacDashboard: View {
             heading("Board", subtitle: "The latest message on your ambient display.")
             PAUSEMacPanel {
                 MacBoardPreview(message: activity.cloudBoardMessage ??
-                    "🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 \n 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 \n 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩"))
+                    "🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 \n 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 \n 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩")
                 HStack {
                     Label(cloud.syncEnabled ? "Cloud sync enabled" : "Preview only",
                           systemImage: "rectangle.on.rectangle")
