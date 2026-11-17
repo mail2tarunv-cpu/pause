@@ -46,27 +46,11 @@ enum PAUSEMacPalette {
 }
 
 enum PAUSEMacType {
-    private static func size(_ style: Font.TextStyle) -> CGFloat {
-        switch style {
-        case .largeTitle: return 38
-        case .title: return 31
-        case .title2: return 25
-        case .title3: return 21
-        case .headline: return 17
-        case .subheadline: return 14
-        case .callout: return 14
-        case .footnote: return 12
-        case .caption: return 11
-        case .caption2: return 10
-        default: return 15
-        }
-    }
     static func heading(_ style: Font.TextStyle = .title2) -> Font {
-        .custom("SpaceGrotesk-Bold", size: size(style), relativeTo: style)
+        .system(style, design: .default, weight: .semibold)
     }
     static func body(_ style: Font.TextStyle = .body, strong: Bool = false) -> Font {
-        .custom(strong ? "DMMono-Medium" : "DMMono-Regular",
-                size: size(style), relativeTo: style)
+        .system(style, design: .default, weight: strong ? .semibold : .regular)
     }
 }
 
