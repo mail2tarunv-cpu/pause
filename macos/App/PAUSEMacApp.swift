@@ -14,10 +14,9 @@ struct PAUSEMacApp: App {
     var body: some Scene {
         WindowGroup("PAUSE for Mac", id: "main") {
             MacDashboard(activity: activity, cloud: cloud)
-                .font(PAUSEMacType.body())
-                .tint(PAUSEMacPalette.tint)
+                .tint(Color.accentColor)
                 .symbolRenderingMode(.hierarchical)
-                .frame(minWidth: 740, minHeight: 560)
+                .frame(minWidth: 790, minHeight: 595)
                 .onAppear {
                     activity.startIfNeeded()
                     cloud.attach(activity: activity)
