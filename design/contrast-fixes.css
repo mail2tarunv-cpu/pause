@@ -58,7 +58,7 @@ body .preset:not(:disabled):hover {
 }
 body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.secondary),
          .row button:not(.secondary),button.primary,button#saveConfig,
-         button#signIn,button#send,button#connect,
+         button#signIn,button#send,button#connect,button#cloudConnect,
          .nudge-actions button:first-child) {
   background: var(--ui-primary-bg) !important;
   color: var(--ui-primary-fg) !important;
@@ -68,14 +68,14 @@ body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.se
 }
 body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.secondary),
          .row button:not(.secondary),button.primary,button#saveConfig,
-         button#signIn,button#send,button#connect,
+         button#signIn,button#send,button#connect,button#cloudConnect,
          .nudge-actions button:first-child) :is(span,strong,small,.name,.detail) {
   color: var(--ui-primary-fg) !important;
   -webkit-text-fill-color: var(--ui-primary-fg) !important;
 }
 body :is(.dock .primary,.panel-primary,.pair-row button,.actions .button:not(.secondary),
          .row button:not(.secondary),button.primary,button#saveConfig,
-         button#signIn,button#send,button#connect,
+         button#signIn,button#send,button#connect,button#cloudConnect,
          .nudge-actions button:first-child):not(:disabled):hover {
   background: var(--ui-primary-hover-bg) !important;
   color: var(--ui-primary-fg) !important;
