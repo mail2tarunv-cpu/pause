@@ -39,7 +39,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   background: var(--field); color: var(--ink); padding: 8px 12px;
   font: 500 12px "DM Mono", monospace; cursor: pointer;
 }
-.row button.primary { flex: 1; background: var(--action); color: white; border-color: var(--action); }
+.row button.primary { flex: 1; background: #08796d; color: #ffffff; border-color: #08796d; }
 .row button:hover { filter: brightness(.96); }
 .toggle {
   margin: 22px 0 18px; padding: 16px 0; border-block: 1px solid var(--line);
@@ -64,6 +64,7 @@ a { color: var(--action); text-underline-offset: 3px; font-size: 12px; }
     --action: #75e3d2;
     --success: #30d158;
   }
+  .row button.primary { background: #75e3d2; color: #111514; border-color: #75e3d2; }
   .row button:hover { filter: brightness(1.1); }
 }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition:none!important;animation:none!important; } }
@@ -75,3 +76,7 @@ a { color: var(--action); text-underline-offset: 3px; font-size: 12px; }
 .pause-shape-strip .wave { display:flex; height:14px; align-items:center; }
 .pause-shape-strip .wave i { width:10px; height:14px; background:#13d1e2; border-radius:50%; margin-left:-2px; }
 .pause-shape-strip .dot { width:10px; height:10px; border-radius:50%; background:#5951f9; }
+
+/* High-contrast popup controls for both macOS appearance modes. */
+.row button:focus-visible { outline: 3px solid var(--action); outline-offset: 2px; }
+.row button:disabled { opacity: .65; cursor: not-allowed; }
