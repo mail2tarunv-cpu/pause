@@ -69,27 +69,16 @@ struct PAUSEDailyScene: DeviceActivityReportScene {
 
 private enum PAUSEReportType {
     static func body(_ style: Font.TextStyle = .body, strong: Bool = false) -> Font {
-        let size: CGFloat
-        switch style {
-        case .largeTitle: size = 36
-        case .title2: size = 24
-        case .headline: size = 17
-        case .subheadline: size = 14
-        case .caption: size = 11
-        default: size = 15
-        }
-        return .custom(strong ? "DMMono-Medium" : "DMMono-Regular",
-                       size: size, relativeTo: style)
+        .system(style, design: .default, weight: strong ? .semibold : .regular)
     }
     static func heading(_ style: Font.TextStyle) -> Font {
-        let size: CGFloat = style == .largeTitle ? 36 : 18
-        return .custom("SpaceGrotesk-Bold", size: size, relativeTo: style)
+        .system(style, design: .default, weight: .semibold)
     }
 }
 
 struct PAUSEDailyReportView: View {
     let configuration: PAUSEReportConfiguration
-    private let accent = Color(red: 0.05, green: 0.53, blue: 0.46)
+    private let accent = Color.accentColor
 
     private func duration(_ seconds: TimeInterval) -> String {
         let minutes = Int(seconds / 60)
@@ -123,7 +112,7 @@ struct PAUSEDailyReportView: View {
                     "No activity reported yet. Screen Time can take a few minutes to update.",
                     systemImage: "hourglass"
                 )
-                .font(.subheadline)
+                .font(PAUSEReportType.body(.subheadline))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             } else {
@@ -139,7 +128,7 @@ struct PAUSEDailyReportView: View {
                 if !configuration.apps.isEmpty {
                     Divider()
                     Text("Most used apps")
-                        .font(.headline)
+                        .font(PAUSEReportType.heading(.headline))
                     ForEach(configuration.apps) { entry in
                         usageRow(entry)
                     }
