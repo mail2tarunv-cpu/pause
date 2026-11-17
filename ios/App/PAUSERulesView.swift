@@ -1,7 +1,6 @@
 import SwiftUI
 import FamilyControls
 
-/// Rules use the same grouped forms and pickers people know from iOS Settings.
 struct PAUSERulesView: View {
     @ObservedObject var model: PAUSEModel
     @State private var choosingApps = false
@@ -9,41 +8,48 @@ struct PAUSERulesView: View {
     var body: some View {
         Form {
             Section {
-                PAUSEIntro(
-                    title: "A nudge, not a wall.",
-                    subtitle: "Choose what PAUSE watches and when it should check in.",
-                    symbol: "leaf"
-                )
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("A gentle reminder").font(.body.weight(.medium))
+                        Text("Choose which activities to watch and when to check in.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "hourglass")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 6)
             }
-            .listRowBackground(Color.clear)
 
             Section {
-                HStack {
+                LabeledContent {
+                    Text(model.screenTimeAuthorized ? "Allowed" : "Not allowed")
+                        .foregroundStyle(.secondary)
+                } label: {
                     Label("Screen Time", systemImage: "hourglass")
-                    Spacer()
-                    Text(model.screenTimeAuthorized ? "Allowed" : "Required")
-                        .foregroundStyle(model.screenTimeAuthorized ? Color.green : Color.secondary)
                 }
                 if !model.screenTimeAuthorized {
-                    Button("Allow Screen Time access") {
+                    Button("Allow Screen Time") {
                         Task { await model.authorizeScreenTime() }
                     }
                 }
-                HStack {
-                    Label("Notifications", systemImage: "bell")
-                    Spacer()
+                LabeledContent {
                     Text(model.notificationAuthorized ? "Allowed" : "Off")
                         .foregroundStyle(.secondary)
+                } label: {
+                    Label("Notifications", systemImage: "bell")
                 }
                 if !model.notificationAuthorized {
-                    Button("Enable notifications") {
+                    Button("Enable Notifications") {
                         Task { await model.requestNotifications() }
                     }
                 }
             } header: {
                 Text("Permissions")
             } footer: {
-                Text("Apple controls the app-selection picker and private Screen Time reports.")
+                Text("Apple keeps the selected apps and their Screen Time reports private.")
             }
 
             Section {
@@ -51,32 +57,27 @@ struct PAUSERulesView: View {
                     choosingApps = true
                 } label: {
                     HStack(spacing: 10) {
-                        Label("Choose apps and sites", systemImage: "square.grid.2x2")
+                        Label("Choose Apps and Websites", systemImage: "square.grid.2x2")
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(PAUSEType.body(.caption))
+                            .font(.caption.weight(.semibold))
                             .foregroundStyle(.tertiary)
                     }
                 }
                 .disabled(!model.screenTimeAuthorized)
-
-                LabeledContent("Selected activity", value: "\(model.selectionCount) items")
+                LabeledContent("Selected", value: "\(model.selectionCount) items")
             } header: {
-                Text("Activity")
+                Text("Monitored activity")
             } footer: {
-                Text("Only selected apps, categories and websites contribute to the daily threshold.")
+                Text("Only activity you select counts toward your daily threshold.")
             }
 
             Section {
-                Stepper(
-                    value: $model.thresholdMinutes,
-                    in: 5...240,
-                    step: 5
-                ) {
+                Stepper(value: $model.thresholdMinutes, in: 5...240, step: 5) {
                     LabeledContent("Daily limit") {
                         Text("\(model.thresholdMinutes) min")
-                            .monospacedDigit()
                             .fontWeight(.semibold)
+                            .monospacedDigit()
                     }
                 }
                 Picker("Reminder style", selection: $model.category) {
@@ -88,67 +89,57 @@ struct PAUSERulesView: View {
             } header: {
                 Text("Check-in")
             } footer: {
-                Text("This is cumulative time per day, not one uninterrupted session. Reminder style changes the wording, not which apps are monitored.")
+                Text("The limit counts total use across the day, not a continuous session.")
             }
 
             Section {
                 Label {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(model.category.title + " reminder")
-                            .font(PAUSEType.body(.body, strong: true))
+                        Text(model.category.title + " check-in")
+                            .font(.body.weight(.medium))
                         Text(model.category.detail)
-                            .font(PAUSEType.body(.subheadline))
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                 } icon: {
                     Image(systemName: model.category.icon)
-                        .foregroundStyle(PAUSEPalette.tint)
+                        .foregroundStyle(.secondary)
                 }
             } header: {
-                PAUSESectionHeading(title: "Preview")
+                Text("Reminder preview")
             }
 
             Section {
                 Button {
                     model.startMonitoring()
                 } label: {
-                    HStack {
-                        Spacer()
-                        Label(model.monitoring ? "Update monitoring" : "Start monitoring",
-                              systemImage: model.monitoring ? "checkmark.circle" : "play.fill")
-                        Spacer()
-                    }
+                    Label(model.monitoring ? "Update Monitoring" : "Start Monitoring",
+                          systemImage: model.monitoring ? "checkmark.circle" : "play.fill")
+                        .frame(maxWidth: .infinity)
                 }
-                .fontWeight(.semibold)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .frame(maxWidth: .infinity)
                 .disabled(!model.screenTimeAuthorized || !model.hasSelection)
 
                 if model.monitoring {
-                    Button(role: .destructive) {
+                    Button("Stop Monitoring", role: .destructive) {
                         model.stopMonitoring()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Label("Stop monitoring", systemImage: "pause.fill")
-                            Spacer()
-                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
             } footer: {
-                Text(model.monitoring ? "Monitoring is enabled." : "Monitoring is currently paused.")
+                Text(model.monitoring ? "Monitoring is active." : "Monitoring is currently paused.")
             }
 
-            Section {
-                PAUSEStatusNotice(text: model.status)
-            }.listRowBackground(Color.clear)
+            if model.status != "Ready when you are." {
+                Section {
+                    PAUSEStatusNotice(text: model.status)
+                }
+                .listRowBackground(Color.clear)
+            }
         }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(PAUSEPalette.background)
         .navigationTitle("Rules")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .familyActivityPicker(isPresented: $choosingApps, selection: $model.selection)
         .onChange(of: model.selection) { _, _ in model.saveSelection() }
     }
