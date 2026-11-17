@@ -4,6 +4,7 @@ struct PAUSEBoardView: View {
     @ObservedObject var model: PAUSEModel
     @ObservedObject private var cloud = PAUSECloud.shared
     @FocusState private var composing: Bool
+    @State private var localExpanded = false
 
     private var boardLayout: PAUSEBoardLayout {
         PAUSEBoardLayout(message: model.boardDraft)
@@ -16,144 +17,116 @@ struct PAUSEBoardView: View {
     var body: some View {
         List {
             Section {
-                PAUSEIntro(title: "Your message, out in the open.",
-                           subtitle: "Make a little room for the thought that matters.",
-                           symbol: "rectangle.grid.1x2")
-            }
-            .listRowBackground(Color.clear)
-
-            Section {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack {
-                        Label("LIVE PREVIEW", systemImage: "square.grid.3x3.fill")
-                            .font(PAUSEType.body(.caption2, strong: true))
-                            .tracking(1)
-                            .foregroundStyle(PAUSEPalette.secondary)
-                        Spacer()
-                        Text("6 × 22")
-                            .font(PAUSEType.body(.caption))
-                            .foregroundStyle(PAUSEPalette.secondary)
-                    }
+                VStack(alignment: .leading, spacing: 12) {
                     PAUSEFlapPreview(message: model.boardDraft)
-                    Text(boardLayout.overflow ?
-                         "Message exceeds six rows. Shorten it to send." :
-                         "Your message, exactly as it fits on the board.")
-                        .font(PAUSEType.body(.caption))
-                        .foregroundStyle(boardLayout.overflow ? Color.red : PAUSEPalette.secondary)
+                    HStack {
+                        Label("6 rows × 22 columns", systemImage: "rectangle.grid.1x2")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(boardLayout.overflow ? "Too many rows" : "Live preview")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(boardLayout.overflow ? Color.red : Color.secondary)
+                    }
                 }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(PAUSEPalette.surface, in: RoundedRectangle(cornerRadius: 17))
-                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-                .listRowBackground(Color.clear)
+                .padding(.vertical, 8)
+            } header: {
+                Text("Preview")
+            } footer: {
+                Text("The preview shows the layout of your physical display.")
             }
 
             Section {
                 TextEditor(text: $model.boardDraft)
-                    .font(PAUSEType.body())
+                    .font(.system(.body, design: .monospaced))
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
-                    .scrollContentBackground(.hidden)
-                    .frame(height: 126)
+                    .frame(height: 108)
                     .focused($composing)
-                    .accessibilityLabel("Board message")
-                    .onChange(of: model.boardDraft) { _, value in
-                        if value.count > 280 {
-                            model.boardDraft = String(value.prefix(280))
+                    .accessibilityLabel("Message for the board")
+                    .onChange(of: model.boardDraft) { _, text in
+                        if text.count > 280 {
+                            model.boardDraft = String(text.prefix(280))
                         }
                     }
-                HStack {
-                    Text("Uppercase · 22 characters per row")
+                HStack(spacing: 12) {
+                    Text(boardLayout.overflow ? "Shorten your message to six rows." :
+                         "Text is centered automatically.")
+                        .foregroundStyle(boardLayout.overflow ? Color.red : Color.secondary)
                     Spacer()
-                    Text("\(model.boardDraft.count) / 280")
+                    Text("\(model.boardDraft.count)/280")
                         .monospacedDigit()
+                        .foregroundStyle(.secondary)
                 }
-                .font(PAUSEType.body(.caption))
-                .foregroundStyle(.secondary)
+                .font(.caption)
             } header: {
-                Text("Compose")
-            } footer: {
-                Text("Each row is centered. Extra lines are not silently cut off.")
+                Text("Message")
             }
 
             Section {
-                HStack {
-                    Label("Connected account", systemImage: "icloud")
-                    Spacer()
-                    Text(cloud.signedIn ? "Signed in" : "Not connected")
-                        .foregroundStyle(.secondary)
-                }
+                LabeledContent("Cloud account", value: cloud.signedIn ? "Signed in" : "Not connected")
+
                 Button {
                     composing = false
                     Task { await cloud.sendBoard(model.boardDraft) }
                 } label: {
-                    Label("Send message over cloud", systemImage: "paperplane.fill")
+                    Label("Send to Display", systemImage: "paperplane.fill")
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(!cloud.signedIn || !canSend)
-                Button(role: .destructive) {
-                    Task { await cloud.sendBoard(nil) }
-                } label: {
-                    Label("Clear cloud display", systemImage: "xmark.circle")
-                }
-                .disabled(!cloud.signedIn)
-                Text(cloud.status)
-                    .font(PAUSEType.body(.footnote))
-                    .foregroundStyle(.secondary)
-            } header: {
-                PAUSESectionHeading(title: "Cloud display")
-            }
 
-            Section {
-                LabeledContent("Connection") {
-                    Text(model.boardConnected ? "Paired" : "Not paired")
-                        .foregroundStyle(.secondary)
+                if cloud.signedIn {
+                    Button("Clear Display", role: .destructive) {
+                        Task { await cloud.sendBoard(nil) }
+                    }
                 }
-                TextField("Mac board address", text: $model.boardAddress,
-                          prompt: Text("http://192.168.1.10:8765"))
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                SecureField("Pairing code", text: $model.boardKey)
-                    .textInputAutocapitalization(.never)
-                Button("Pair local display") {
-                    composing = false
-                    Task { await model.pairBoard() }
-                }
-                .disabled(model.isWorking)
-                Toggle("Forward generic limit events", isOn: Binding(
-                    get: { model.forwardThresholds },
-                    set: { model.setForwardThresholds($0) }
-                ))
             } header: {
-                Text("Local display · Optional")
+                Text("Delivery")
             } footer: {
-                Text("For the older Mac relay on trusted Wi-Fi. Only generic reminder categories are forwarded, never app identities or Screen Time reports.")
+                Text(cloud.signedIn ? cloud.status :
+                     "Connect your PAUSE account in Settings to send messages over the internet.")
             }
 
             Section {
-                Label(model.category.title + " check-in",
-                      systemImage: model.category.icon)
-                    .foregroundStyle(.secondary)
-                Button("Send simulated reminder") {
-                    Task { await model.sendExampleNudge() }
+                DisclosureGroup("Local Wi-Fi connection", isExpanded: $localExpanded) {
+                    LabeledContent("Status", value: model.boardConnected ? "Paired" : "Not paired")
+                    TextField("Mac board address", text: $model.boardAddress,
+                              prompt: Text("http://192.168.1.10:8765"))
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                    SecureField("Pairing code", text: $model.boardKey)
+                        .textInputAutocapitalization(.never)
+                    Button("Pair Local Display") {
+                        composing = false
+                        Task { await model.pairBoard() }
+                    }
+                    .disabled(model.isWorking)
+                    Toggle("Forward limit events", isOn: Binding(
+                        get: { model.forwardThresholds },
+                        set: { model.setForwardThresholds($0) }
+                    ))
+                    Button("Send Test Reminder") {
+                        Task { await model.sendExampleNudge() }
+                    }
+                    .disabled(model.isWorking || !model.boardConnected)
                 }
-                .disabled(model.isWorking || !model.boardConnected)
-            } header: {
-                Text("Try a reminder")
             } footer: {
-                Text("A test message is not measured Screen Time.")
+                Text("Advanced: use the older local Mac relay on trusted Wi-Fi. It sends generic reminder events only.")
             }
 
-            Section {
-                PAUSEStatusNotice(text: model.status)
+            if model.status != "Ready when you are." {
+                Section {
+                    PAUSEStatusNotice(text: model.status)
+                }
+                .listRowBackground(Color.clear)
             }
-            .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(PAUSEPalette.background)
         .navigationTitle("Board")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
