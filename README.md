@@ -50,7 +50,7 @@ iOS Screen Time -> protected report extension  | (report never uploaded)
 
 ## PAUSE visual identity — November 2026
 
-PAUSE is now styled using the editorial reference-inspired system: **Space Grotesk for headings, DM Mono for body labels and controls**. Bright orange, yellow, magenta, cyan, purple, and lime are restrained accents on a black/off-white base. The digital board remains dark with color tiles; the mobile and desktop apps keep native SF Symbols and system controls.
+The **website** uses the editorial reference-inspired typography (Space Grotesk headings and DM Mono body), bright geometric accents, and a black/off-white hardware aesthetic. The **native Mac and iPhone apps deliberately use San Francisco, semantic system colors, SF Symbols, and Apple-style controls**. DM Mono remains on the physical split-flap display itself.
 
 Font binaries are OFL-licensed build assets: on macOS run `bash scripts/prepare_fonts.sh` before generating Xcode projects and before loading the browser extension. The native iPhone app and its report extension bundle the actual font files; macOS registers them privately for the running app. Public web pages use Google Fonts CSS. Font binaries are deliberately not committed to GitHub.
 
@@ -72,7 +72,7 @@ Both SwiftUI apps use Apple's SF Symbols for interface actions. An original bran
 
 ## Apple-native design audit
 
-The iPhone now uses native tab/navigation stacks, grouped forms, Dynamic Type-friendly styles, and adaptive Light/Dark Mode. The Mac uses a real native sidebar, menu-bar commands, GroupBox panels and platform controls. The browser extension popup follows macOS appearance. The 6×22 split-flap board remains the product signature. Read [the complete UI audit and manual visual QA checklist](docs/UI-AUDIT.md).
+The iPhone uses native tab/navigation stacks, grouped forms, Dynamic Type-friendly San Francisco typography, and adaptive Light/Dark Mode. The Mac uses a native sidebar, menu-bar commands, full-width system-colored content panels, and native input controls. The browser extension popup follows macOS appearance. The 6×22 split-flap board remains the product signature. Read [the complete UI audit and manual visual QA checklist](docs/UI-AUDIT.md).
 
 ## Verification
 
