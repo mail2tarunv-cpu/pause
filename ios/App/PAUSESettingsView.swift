@@ -5,106 +5,58 @@ struct PAUSESettingsView: View {
     @ObservedObject private var cloud = PAUSECloud.shared
     @State private var showClearConfirmation = false
     @State private var showDisconnectConfirmation = false
+    @State private var cloudConfigurationExpanded = false
 
     var body: some View {
         Form {
             Section {
-                PAUSEIntro(title: "Your attention stays yours.",
-                           subtitle: "Decide what PAUSE can see, save, and share.",
-                           symbol: "lock.shield")
-            }
-            .listRowBackground(Color.clear)
-
-            Section {
-                PAUSEInfoRow(
-                    symbol: "hand.raised",
-                    title: "Your data stays yours",
-                    explanation: "PAUSE works without an account. Sharing across devices is optional."
-                )
-            }
-            .listRowBackground(Color.clear)
-
-            Section {
-                HStack {
-                    Label("Screen Time", systemImage: "hourglass")
-                    Spacer()
+                LabeledContent {
                     Text(model.screenTimeAuthorized ? "Allowed" : "Off")
                         .foregroundStyle(.secondary)
+                } label: {
+                    Label("Screen Time", systemImage: "hourglass")
                 }
                 if !model.screenTimeAuthorized {
                     Button("Allow Screen Time") {
                         Task { await model.authorizeScreenTime() }
                     }
                 }
-
-                HStack {
-                    Label("Notifications", systemImage: "bell")
-                    Spacer()
+                LabeledContent {
                     Text(model.notificationAuthorized ? "Allowed" : "Off")
                         .foregroundStyle(.secondary)
+                } label: {
+                    Label("Notifications", systemImage: "bell")
                 }
                 if !model.notificationAuthorized {
-                    Button("Enable notifications") {
+                    Button("Enable Notifications") {
                         Task { await model.requestNotifications() }
                     }
                 }
             } header: {
-                PAUSESectionHeading(title: "Permissions")
-            }
-
-            Section {
-                LabeledContent("Monitoring") {
-                    Label(model.monitoring ? "On" : "Paused",
-                          systemImage: model.monitoring ? "checkmark.circle.fill" : "pause.circle")
-                        .foregroundStyle(model.monitoring ? Color.green : Color.secondary)
-                }
-                if model.monitoring {
-                    Button("Stop monitoring", role: .destructive) {
-                        model.stopMonitoring()
-                    }
-                }
-            } header: {
-                Text("Monitoring")
+                Text("Permissions")
             } footer: {
-                Text("PAUSE monitors only selected activity. It does not read your messages or block apps.")
+                Text("PAUSE only monitors selected activity and does not read your messages.")
             }
 
             Section {
-                LabeledContent("Local board") {
-                    Text(model.boardConnected ? "Paired" : "Not paired")
+                LabeledContent {
+                    Text(cloud.signedIn ? "Signed in" : "Not connected")
                         .foregroundStyle(.secondary)
+                } label: {
+                    Label("Account", systemImage: "icloud")
                 }
-                Button("Forget local board", role: .destructive) {
-                    showDisconnectConfirmation = true
-                }
-                .disabled(model.boardAddress.isEmpty && model.boardKey.isEmpty)
-            } header: {
-                PAUSESectionHeading(title: "Connected board")
-            }
-
-            Section {
-                TextField("Project URL", text: $cloud.projectURL,
-                          prompt: Text("https://your-project.supabase.co"))
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                    .autocorrectionDisabled()
-                TextField("Public publishable key", text: $cloud.publishableKey)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
 
                 if cloud.signedIn {
-                    Toggle("Sync generic threshold events", isOn: Binding(
+                    Toggle("Sync check-ins", isOn: Binding(
                         get: { cloud.enabled },
                         set: { cloud.setEnabled($0) }
                     ))
                     Button {
                         Task { await cloud.syncLocalEvents() }
                     } label: {
-                        Label("Sync now", systemImage: "arrow.clockwise")
+                        Label("Sync Now", systemImage: "arrow.clockwise")
                     }
-                    Button("Sign out", role: .destructive) {
-                        cloud.signOut()
-                    }
+                    Button("Sign Out", role: .destructive) { cloud.signOut() }
                 } else {
                     TextField("Email address", text: $cloud.email)
                         .textContentType(.emailAddress)
@@ -112,65 +64,81 @@ struct PAUSESettingsView: View {
                         .textInputAutocapitalization(.never)
                     SecureField("Password", text: $cloud.password)
                         .textContentType(.password)
-                    Button("Sign in") {
+                    Button("Sign In") {
                         Task { await cloud.signIn() }
                     }
                     .disabled(cloud.email.isEmpty || cloud.password.isEmpty)
                 }
+
+                DisclosureGroup("Server configuration", isExpanded: $cloudConfigurationExpanded) {
+                    TextField("Project URL", text: $cloud.projectURL,
+                              prompt: Text("https://your-project.supabase.co"))
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                    TextField("Public publishable key", text: $cloud.publishableKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
                 Text(cloud.status)
-                    .font(PAUSEType.body(.footnote))
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             } header: {
-                Text("Private cloud · Optional")
+                Text("PAUSE Cloud")
             } footer: {
-                Text("Sync shares only generic reminder events. Apple's raw Screen Time report stays on this iPhone.")
+                Text("Cloud sync is optional. Only generic check-in events are sent; the detailed iPhone Screen Time report stays on your device.")
             }
 
             Section {
-                LabeledContent("Local events", value: "\(model.recentEvents.count)")
-                Button("Clear check-in history", role: .destructive) {
+                LabeledContent("Local display", value:
+                    model.boardConnected ? "Paired" : "Not paired")
+                Button("Forget Local Display", role: .destructive) {
+                    showDisconnectConfirmation = true
+                }
+                .disabled(model.boardAddress.isEmpty && model.boardKey.isEmpty)
+            } header: {
+                Text("Display")
+            }
+
+            Section {
+                LabeledContent("Recorded check-ins", value: "\(model.recentEvents.count)")
+                Button("Clear Check-in History", role: .destructive) {
                     showClearConfirmation = true
                 }
                 .disabled(model.recentEvents.isEmpty)
             } header: {
                 Text("Data & privacy")
             } footer: {
-                Text("Clearing PAUSE events does not delete Apple's Screen Time history or previously synced cloud records.")
+                Text("Removing local history does not delete previously synchronized cloud records.")
             }
 
             Section {
                 LabeledContent("App", value: "PAUSE")
                 LabeledContent("Version", value: "0.4")
-                PAUSEInfoRow(
-                    symbol: "info.circle",
-                    title: "Built for awareness",
-                    explanation: "Reminders currently use rules and templates, not AI-generated advice."
-                )
             } header: {
-                PAUSESectionHeading(title: "About")
+                Text("About")
             }
 
-            Section {
-                PAUSEStatusNotice(text: model.status)
+            if model.status != "Ready when you are." {
+                Section {
+                    PAUSEStatusNotice(text: model.status)
+                }.listRowBackground(Color.clear)
             }
-            .listRowBackground(Color.clear)
         }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(PAUSEPalette.background)
         .navigationTitle("Settings")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .confirmationDialog("Delete local check-in history?",
             isPresented: $showClearConfirmation, titleVisibility: .visible) {
-            Button("Delete history", role: .destructive) {
+            Button("Delete History", role: .destructive) {
                 model.clearLocalHistory()
             }
         } message: {
-            Text("Only the PAUSE history on this iPhone will be cleared.")
+            Text("This only clears PAUSE records on your iPhone.")
         }
-        .confirmationDialog("Forget the local board?",
+        .confirmationDialog("Forget the local display?",
             isPresented: $showDisconnectConfirmation, titleVisibility: .visible) {
-            Button("Forget board", role: .destructive) {
+            Button("Forget Display", role: .destructive) {
                 model.boardAddress = ""
                 model.boardKey = ""
                 model.boardConnected = false
