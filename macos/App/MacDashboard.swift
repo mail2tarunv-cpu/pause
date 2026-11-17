@@ -4,7 +4,6 @@ import AppKit
 private enum PAUSEMacSection: String, CaseIterable, Identifiable {
     case overview, activity, browser, cloud, board
     var id: String { rawValue }
-
     var title: String {
         switch self {
         case .overview: return "Overview"
@@ -14,8 +13,7 @@ private enum PAUSEMacSection: String, CaseIterable, Identifiable {
         case .board: return "Board"
         }
     }
-
-    var icon: String {
+    var symbol: String {
         switch self {
         case .overview: return "square.grid.2x2"
         case .activity: return "chart.bar.xaxis"
@@ -29,356 +27,472 @@ private enum PAUSEMacSection: String, CaseIterable, Identifiable {
 struct MacDashboard: View {
     @ObservedObject var activity: MacActivityStore
     @ObservedObject var cloud: MacCloudSync
-
     @State private var selection: PAUSEMacSection? = .overview
     @State private var showingToken = false
     @State private var showingDelete = false
 
-    private var timeToday: String {
-        "\(activity.totalMinutes / 60)h \(activity.totalMinutes % 60)m"
+    private var minutes: String {
+        let total = activity.totalMinutes
+        return total >= 60 ? "\(total / 60) hr \(total % 60) min" : "\(total) min"
     }
 
     var body: some View {
         NavigationSplitView {
-            List(PAUSEMacSection.allCases, selection: $selection) { section in
-                Label(section.title, systemImage: section.icon)
-                    .tag(section)
+            List(PAUSEMacSection.allCases, selection: $selection) { item in
+                Label(item.title, systemImage: item.symbol)
+                    .tag(item)
+                    .padding(.vertical, 3)
             }
             .listStyle(.sidebar)
             .navigationTitle("PAUSE")
-            .frame(minWidth: 174)
+            .navigationSplitViewColumnWidth(min: 178, ideal: 206, max: 250)
         } detail: {
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 24) {
                     currentSection
                 }
                 .frame(maxWidth: 880, alignment: .leading)
-                .padding(28)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 30)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .background(PAUSEMacPalette.paper)
+            .background(Color(nsColor: .windowBackgroundColor))
             .navigationTitle(selection?.title ?? "Overview")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         activity.isTracking.toggle()
+                        activity.persist()
                     } label: {
-                        Label(activity.isTracking ? "Pause Tracking" : "Resume Tracking",
+                        Label(activity.isTracking ? "Pause tracking" : "Resume tracking",
                               systemImage: activity.isTracking ? "pause.fill" : "play.fill")
                     }
-                    .help(activity.isTracking ? "Pause Mac activity monitoring" : "Resume Mac activity monitoring")
+                    .help(activity.isTracking ? "Pause activity tracking" : "Resume activity tracking")
                 }
             }
         }
         .navigationSplitViewStyle(.balanced)
-        .alert("Delete local activity history?", isPresented: $showingDelete) {
+        .alert("Delete local activity?", isPresented: $showingDelete) {
             Button("Delete History", role: .destructive) { activity.clearRecords() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This deletes only the local PAUSE records on this Mac. Previously synchronized cloud summaries are not deleted.")
+            Text("This removes records on this Mac only. Previously synced cloud totals are not deleted.")
         }
     }
 
     @ViewBuilder private var currentSection: some View {
         switch selection ?? .overview {
         case .overview: overview
-        case .activity: activityDetails
-        case .browser: browserSettings
-        case .cloud: cloudSettings
-        case .board: boardPreview
+        case .activity: activityView
+        case .browser: browserView
+        case .cloud: cloudView
+        case .board: boardView
         }
     }
 
-    @ViewBuilder private func intro(_ title: String, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            PAUSEMacShapeStamp()
-                .padding(.bottom, 6)
+    @ViewBuilder private func heading(_ title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
             Text(title)
-                .font(PAUSEMacType.heading(.largeTitle))
-            Text(detail)
-                .font(PAUSEMacType.body(.subheadline))
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(.primary)
+            Text(subtitle)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-        .padding(.bottom, 3)
     }
 
     private var overview: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            intro("Good to have you here.",
-                  "A quieter place to understand your time on this Mac.")
-
-            HStack(alignment: .top, spacing: 16) {
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(timeToday)
-                            .font(PAUSEMacType.heading(.largeTitle))
-                            .monospacedDigit()
-                        Text("Foreground time, excluding idle periods")
-                            .font(PAUSEMacType.body(.caption))
-                            .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 22) {
+            HStack(alignment: .top) {
+                heading("Overview", subtitle: "Your Mac activity today")
+                Spacer()
+                Label(activity.isTracking ? "Tracking" : "Paused",
+                      systemImage: activity.isTracking ? "checkmark.circle.fill" : "pause.circle")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(activity.isTracking ? Color.green : Color.secondary)
+                    .padding(.top, 8)
+            }
+            HStack(spacing: 14) {
+                metricCard("Active time", value: minutes,
+                           subtitle: "Foreground use", icon: "clock")
+                metricCard("Current activity", value: activity.foreground,
+                           subtitle: activity.isTracking ? "Live on this Mac" : "Tracking paused",
+                           icon: "macwindow")
+            }
+            categoryPanel
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeading("Recent activity", caption: "Today")
+                PAUSEMacPanel {
+                    if activity.todayRecords.isEmpty {
+                        emptyRow("No activity recorded",
+                                 detail: "Switch to another app and use your Mac to begin tracking.",
+                                 icon: "clock.arrow.circlepath")
+                    } else {
+                        ForEach(Array(activity.todayRecords.prefix(4))) { record in
+                            recordRow(record)
+                            if record.id != activity.todayRecords.prefix(4).last?.id {
+                                Divider()
+                            }
+                        }
+                        HStack {
+                            Spacer()
+                            Button("See all activity") { selection = .activity }
+                                .buttonStyle(.link)
+                        }.padding(.top, 4)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } label: {
-                    Label("Active today", systemImage: "clock")
-                }
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(activity.foreground)
-                            .font(PAUSEMacType.heading(.title3))
-                            .lineLimit(2)
-                            .frame(minHeight: 40, alignment: .leading)
-                        Label(activity.isTracking ? "Tracking locally" : "Monitoring paused",
-                              systemImage: activity.isTracking ? "checkmark.circle.fill" : "pause.circle")
-                            .font(PAUSEMacType.body(.caption))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } label: {
-                    Label("Right now", systemImage: "circle.dotted")
                 }
             }
-
-            categoryGroup
-
-            GroupBox {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Label(activity.isWebsiteConnected ? "Browser paired" : "Browser not paired",
-                              systemImage: activity.isWebsiteConnected ? "checkmark.circle.fill" : "globe")
-                        Spacer()
-                        Button("Set Up") { selection = .browser }
-                    }
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeading("Connections")
+                PAUSEMacPanel {
+                    connectionRow("Browser extension",
+                        detail: activity.isWebsiteConnected ? "Connected" : "Not paired",
+                        icon: "globe", action: "Set Up", target: .browser)
                     Divider()
-                    HStack {
-                        Label(cloud.authenticated ? "Cloud account connected" : "Cloud disconnected",
-                              systemImage: cloud.authenticated ? "checkmark.icloud" : "icloud")
-                        Spacer()
-                        Button("Manage") { selection = .cloud }
-                    }
-                    Text("Local tracking continues without a browser extension or cloud account.")
-                        .font(PAUSEMacType.body(.caption))
-                        .foregroundStyle(.secondary)
+                    connectionRow("PAUSE Cloud",
+                        detail: cloud.authenticated ? "Signed in" : "Not connected",
+                        icon: "icloud", action: "Manage", target: .cloud)
                 }
-            } label: {
-                Text("Connections")
             }
         }
     }
 
-    private var categoryGroup: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: 14) {
+    @ViewBuilder private func metricCard(_ title: String, value: String,
+                                          subtitle: String, icon: String) -> some View {
+        PAUSEMacPanel {
+            Label(title, systemImage: icon)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(title == "Active time"
+                      ? .system(size: 34, weight: .semibold, design: .rounded)
+                      : .system(size: 19, weight: .semibold))
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .frame(maxWidth: .infinity, minHeight: 42, alignment: .leading)
+                .accessibilityAddTraits(.updatesFrequently)
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
+
+    private var categoryPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeading("Activity by category")
+            PAUSEMacPanel {
                 if activity.byCategory.isEmpty {
-                    ContentUnavailableView(
-                        "No activity yet",
-                        systemImage: "chart.bar",
-                        description: Text("Keep PAUSE running while you use your Mac.")
-                    )
-                    .frame(minHeight: 150)
+                    emptyRow("Nothing to show yet",
+                             detail: "Activity will appear here once PAUSE has recorded a few minutes.",
+                             icon: "chart.bar")
                 } else {
                     let total = max(1, activity.todayRecords.reduce(0) { $0 + $1.seconds })
                     ForEach(activity.byCategory, id: \.0) { entry in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text(entry.0.capitalized)
-                                Spacer()
-                                Text("\(entry.1 / 60)m")
-                                    .font(PAUSEMacType.body())
-                                    .foregroundStyle(.secondary)
-                            }
+                        HStack(spacing: 16) {
+                            Text(entry.0.capitalized)
+                                .font(.subheadline.weight(.medium))
+                                .frame(width: 118, alignment: .leading)
                             ProgressView(value: Double(entry.1), total: Double(total))
-                                .tint(PAUSEMacPalette.tint)
+                                .tint(.accentColor)
+                            Text("\(entry.1 / 60) min")
+                                .font(.subheadline.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                .frame(width: 72, alignment: .trailing)
                         }
+                        .padding(.vertical, 3)
                     }
                 }
             }
-            .padding(.vertical, 4)
-        } label: {
-            Label("Where your time went", systemImage: "chart.bar.fill")
         }
     }
 
-    private var activityDetails: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            intro("Activity", "Foreground app and website time recorded on this Mac.")
-            categoryGroup
+    @ViewBuilder private func sectionHeading(_ title: String, caption: String? = nil) -> some View {
+        HStack {
+            Text(title).font(.headline)
+            Spacer()
+            if let caption { Text(caption).font(.caption).foregroundStyle(.secondary) }
+        }
+    }
 
-            GroupBox {
-                VStack(alignment: .leading, spacing: 0) {
+    @ViewBuilder private func emptyRow(_ title: String, detail: String, icon: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(.tertiary)
+                .frame(width: 34)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.subheadline.weight(.medium))
+                Text(detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 12)
+    }
+
+    @ViewBuilder private func recordRow(_ record: ActivityRecord) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: record.kind == "site" ? "globe" : "app")
+                .foregroundStyle(.secondary)
+                .frame(width: 30)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(record.label).font(.body.weight(.medium)).lineLimit(1)
+                Text(record.category.capitalized)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 12)
+            Text("\(record.seconds / 60) min")
+                .font(.subheadline.monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 7)
+    }
+
+    @ViewBuilder private func connectionRow(
+        _ title: String, detail: String, icon: String,
+        action: String, target: PAUSEMacSection
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(.secondary)
+                .frame(width: 30)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.body.weight(.medium))
+                Text(detail).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button(action) { selection = target }
+                .controlSize(.regular)
+        }
+        .padding(.vertical, 5)
+    }
+
+    private var activityView: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            heading("Activity", subtitle: "Foreground time recorded locally on your Mac.")
+            categoryPanel
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeading("Applications and websites")
+                PAUSEMacPanel {
                     if activity.todayRecords.isEmpty {
-                        ContentUnavailableView("No activity recorded", systemImage: "clock")
-                            .frame(minHeight: 140)
+                        emptyRow("No activity yet",
+                                 detail: "Leave PAUSE running while you work in another application.",
+                                 icon: "macwindow")
                     } else {
                         ForEach(activity.todayRecords) { record in
-                            HStack(spacing: 12) {
-                                Image(systemName: record.kind == "site" ? "globe" : "app")
-                                    .frame(width: 22)
-                                    .foregroundStyle(.secondary)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(record.label)
-                                        .lineLimit(1)
-                                        .font(PAUSEMacType.body(.body, strong: true))
-                                    Text(record.category.capitalized)
-                                        .font(PAUSEMacType.body(.caption))
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer(minLength: 12)
-                                Text("\(record.seconds / 60)m")
-                                    .font(PAUSEMacType.body())
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.vertical, 9)
-                            Divider()
+                            recordRow(record)
+                            if record.id != activity.todayRecords.last?.id { Divider() }
                         }
                     }
                 }
-            } label: {
-                Label("Applications and websites", systemImage: "list.bullet")
             }
-
-            HStack {
-                Label("Stored only on this Mac for up to seven days.",
-                      systemImage: "lock.shield")
-                    .font(PAUSEMacType.body(.caption))
+            HStack(alignment: .center) {
+                Label("Up to seven days of history stays on this Mac.", systemImage: "lock.shield")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-                Spacer()
-                Button("Clear Local History", role: .destructive) {
-                    showingDelete = true
-                }
-                .disabled(activity.records.isEmpty)
+                Spacer(minLength: 16)
+                Button("Clear History", role: .destructive) { showingDelete = true }
+                    .disabled(activity.records.isEmpty)
             }
         }
     }
 
-    private var browserSettings: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            intro("Browser", "Connect Chrome or a compatible extension for website-level time.")
-            GroupBox {
-                VStack(alignment: .leading, spacing: 15) {
-                    LabeledContent("Status", value: activity.isWebsiteConnected ? "Connected" : "Not paired")
-                    LabeledContent("Local listener", value: activity.bridgeStatus)
-                    LabeledContent("Latest website", value: activity.lastWebsite)
-                    Divider()
-                    Text("Browser pairing code")
-                        .font(PAUSEMacType.heading(.headline))
-                    HStack {
-                        Group {
-                            if showingToken {
-                                Text(activity.browserPairingCode)
-                                    .font(PAUSEMacType.body())
-                                    .textSelection(.enabled)
-                            } else {
-                                Text("•••• •••• •••• •••• •••• ••••")
-                                    .font(PAUSEMacType.body())
-                                    .foregroundStyle(.secondary)
-                            }
+    private var browserView: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            heading("Browser", subtitle: "Track active websites using a local browser extension.")
+            PAUSEMacPanel {
+                LabeledContent("Connection", value:
+                    activity.isWebsiteConnected ? "Connected" : "Not paired")
+                Divider()
+                LabeledContent("Local listener", value: activity.bridgeStatus)
+                Divider()
+                LabeledContent("Last website", value: activity.lastWebsite)
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeading("Pairing")
+                PAUSEMacPanel {
+                    Text("Pairing code")
+                        .font(.subheadline.weight(.medium))
+                    HStack(spacing: 12) {
+                        if showingToken {
+                            Text(activity.browserPairingCode)
+                                .font(.system(.callout, design: .monospaced))
+                                .textSelection(.enabled)
+                                .lineLimit(2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            Label("Hidden", systemImage: "lock.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        Button(showingToken ? "Hide" : "Show") {
+                        Button {
                             showingToken.toggle()
+                        } label: {
+                            Label(showingToken ? "Hide" : "Reveal",
+                                  systemImage: showingToken ? "eye.slash" : "eye")
                         }
+                    }
+                    HStack(spacing: 10) {
                         Button {
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(activity.browserPairingCode, forType: .string)
                         } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
+                            Label("Copy Code", systemImage: "doc.on.doc")
                         }
-                        Button("Rotate") { activity.resetBrowserToken() }
+                        .buttonStyle(.borderedProminent)
+                        Button {
+                            activity.resetBrowserToken()
+                            showingToken = false
+                        } label: {
+                            Label("Regenerate", systemImage: "arrow.clockwise")
+                        }
                     }
-                }
-                .padding(.vertical, 5)
-            } label: {
-                Label("Local pairing", systemImage: "lock")
-            }
-
-            GroupBox {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label("1. Open chrome://extensions and enable Developer mode.",
-                          systemImage: "1.circle")
-                    Label("2. Choose Load unpacked and select browser-extension/.",
-                          systemImage: "2.circle")
-                    Label("3. Paste the pairing code in the extension popup.",
-                          systemImage: "3.circle")
-                    Text("The extension sends only active domains, never full URLs or page titles.")
-                        .font(PAUSEMacType.body(.caption))
+                    Text("The code only pairs a browser on this Mac. Treat it like a password.")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } label: {
-                Text("Set up extension")
             }
-        }
-    }
-
-    private var cloudSettings: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            intro("Cloud", "Private, opt-in synchronization between your PAUSE devices.")
-            GroupBox {
-                Form {
-                    TextField("Project URL", text: $cloud.projectURL,
-                              prompt: Text("https://your-project.supabase.co"))
-                    TextField("Publishable key", text: $cloud.publishableKey)
-                    if !cloud.authenticated {
-                        TextField("Email", text: $cloud.email)
-                        SecureField("Password", text: $cloud.password)
-                        Button("Sign In") {
-                            Task { await cloud.signIn() }
-                        }
-                        .disabled(cloud.email.isEmpty || cloud.password.isEmpty)
-                    } else {
-                        LabeledContent("Account", value: "Signed in")
-                        Toggle("Sync category totals and board messages", isOn: Binding(
-                            get: { cloud.syncEnabled },
-                            set: { cloud.setSyncEnabled($0) }
-                        ))
-                        Button("Sign Out") { cloud.signOut() }
-                    }
+            VStack(alignment: .leading, spacing: 12) {
+                sectionHeading("Set up Chrome")
+                PAUSEMacPanel {
+                    instruction("1", "Open chrome://extensions and turn on Developer mode.")
+                    Divider()
+                    instruction("2", "Choose Load unpacked and select the browser-extension folder.")
+                    Divider()
+                    instruction("3", "Paste the pairing code in PAUSE's browser popup.")
                 }
-                .formStyle(.grouped)
-                Text(cloud.status)
-                    .font(PAUSEMacType.body(.caption))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
-            } label: {
-                Label("Account & synchronization", systemImage: "icloud")
             }
-
-            Label("Only daily category totals leave this Mac with your permission. App names and website domains are never uploaded.",
+            Label("Only active website domains are shared locally. No page contents or full URLs.",
                   systemImage: "hand.raised")
-                .font(PAUSEMacType.body(.callout))
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
 
-    private var boardPreview: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            intro("Board", "Your ambient message, carried across devices.")
-            GroupBox {
-                VStack(alignment: .leading, spacing: 15) {
-                    MacBoardPreview(message: activity.cloudBoardMessage ??
-                        "🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 \n 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 \n 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩")
-                    HStack {
-                        Label(cloud.syncEnabled ? "Cloud polling enabled" : "Local preview",
-                              systemImage: "rectangle.on.rectangle")
-                            .font(PAUSEMacType.body(.callout))
-                        Spacer()
-                        Text(cloud.syncEnabled ? "Refreshes every ~30 sec" : "Sign in to connect")
-                            .font(PAUSEMacType.body(.caption))
-                            .foregroundStyle(.secondary)
-                    }
-                    Text("The native Mac preview mirrors your latest authenticated board message. To send a message, use the PAUSE iPhone app or cloud controller.")
-                        .font(PAUSEMacType.body(.caption))
+    @ViewBuilder private func instruction(_ number: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text(number)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 20)
+            Text(detail)
+                .font(.subheadline)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }.padding(.vertical, 4)
+    }
+
+    private var cloudView: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            heading("Cloud", subtitle: "Optional synchronization between your PAUSE devices.")
+            PAUSEMacPanel {
+                HStack {
+                    Label("PAUSE Cloud", systemImage: "icloud")
+                        .font(.headline)
+                    Spacer()
+                    Text(cloud.authenticated ? "Signed in" : "Not connected")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.vertical, 8)
-            } label: {
-                Text("PAUSE display")
+                Divider()
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Text("Project URL")
+                            .frame(width: 112, alignment: .leading)
+                        TextField("https://your-project.supabase.co", text: $cloud.projectURL)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    HStack {
+                        Text("Public API key")
+                            .frame(width: 112, alignment: .leading)
+                        TextField("Publishable key", text: $cloud.publishableKey)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    if !cloud.authenticated {
+                        HStack {
+                            Text("Email")
+                                .frame(width: 112, alignment: .leading)
+                            TextField("Email address", text: $cloud.email)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        HStack {
+                            Text("Password")
+                                .frame(width: 112, alignment: .leading)
+                            SecureField("Password", text: $cloud.password)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        HStack {
+                            Spacer()
+                            Button("Sign In") { Task { await cloud.signIn() } }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(cloud.email.isEmpty || cloud.password.isEmpty)
+                        }
+                    } else {
+                        Toggle("Sync daily category totals and board messages", isOn: Binding(
+                            get: { cloud.syncEnabled },
+                            set: { cloud.setSyncEnabled($0) }
+                        ))
+                        HStack {
+                            Spacer()
+                            Button("Sign Out") { cloud.signOut() }
+                        }
+                    }
+                }
+                Text(cloud.status)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            if !cloud.authenticated {
-                Button("Connect a Cloud Account") { selection = .cloud }
-                    .buttonStyle(.borderedProminent)
+            Label("App names and websites stay on this Mac. When enabled, only daily category totals are uploaded.",
+                  systemImage: "lock.shield")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var boardView: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            heading("Board", subtitle: "The latest message on your ambient display.")
+            PAUSEMacPanel {
+                MacBoardPreview(message: activity.cloudBoardMessage ??
+                    "🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 \n 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥\n🟧    LESS SCREEN     🟦\n🟩     MORE LIFE      🟥\n🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 🟦 🟨 🟧 \n 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩 🟥 🟪 🟩"))
+                HStack {
+                    Label(cloud.syncEnabled ? "Cloud sync enabled" : "Preview only",
+                          systemImage: "rectangle.on.rectangle")
+                        .font(.subheadline)
+                    Spacer()
+                    if !cloud.authenticated {
+                        Button("Connect Cloud") { selection = .cloud }
+                    }
+                }
+                Text("Messages can be sent from the iPhone app or cloud controller. Cloud connection is optional.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
+        }
+    }
+}
+
+/// One consistent material and padding rhythm for Mac content.
+private struct PAUSEMacPanel<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            content
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .controlBackgroundColor),
+                    in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(Color(nsColor: .separatorColor).opacity(0.28), lineWidth: 1)
         }
     }
 }
