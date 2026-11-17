@@ -87,7 +87,7 @@ final class MacActivityStore: ObservableObject {
             Task { @MainActor in self?.receiveActiveDomain(domain) }
         }
         do {
-            try websiteBridge?.start(token: { [weak self] in
+            try websiteBridge?.start(token: {
                 // Token is read on main when bridge is initialized; refresh via
                 // UserDefaults for safe background verification.
                 UserDefaults.standard.string(forKey: "pause-browser-token") ?? ""
