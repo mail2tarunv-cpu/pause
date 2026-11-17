@@ -25,6 +25,9 @@ Implementation: [`board-hardware.css`](board-hardware.css) and [`test_board_hard
 Compare an actual desktop browser screenshot at **1200 × 675** to the attached reference: the physical frame should occupy roughly 786 × 421 pixels and the inner flap grid should be approximately 673 × 308 pixels. Verify that the exact 132 cells are present, the grid is centered, all text is legible across the seam, and tablet/mobile layouts preserve the aspect ratio. Run color/preset transitions and confirm the board remains functional. Native compilation is separate from rendered visual QA.
 
 ## Typography
+
+**Platform distinction:** The typography below governs PAUSE's website, browser extension, and physical split-flap display. Native Mac and iPhone navigation, forms, headings, buttons, and Screen Time reports use the platform's San Francisco system fonts. Keep DM Mono only for physical board glyphs and the engraved hardware wordmark.
+
 | Role | Font | Weight | Detail |
 |---|---|---|---|
 | Display / page title | Space Grotesk | 700 | Tight tracking and confident hierarchy |
@@ -71,7 +74,7 @@ The `pause-shape-strip` contains original CSS-drawn blocks:
 - cyan wave
 - violet dot
 
-The native iPhone app implements the motif as `PAUSEShapeStamp`; Mac uses `PAUSEMacShapeStamp`. Avoid using this pattern in every row. Keep it in editorial intros and headers, not next to form controls.
+The shapes are reserved for web editorial surfaces and physical display accents. Native Mac and iPhone screens do not use the decorative stamps in their primary UI; they rely on system hierarchy, spacing, and SF Symbols.
 
 ## QA
 - Run `node tests/test_brand.cjs`.
