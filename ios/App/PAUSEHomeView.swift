@@ -2,8 +2,7 @@ import SwiftUI
 import DeviceActivity
 import FamilyControls
 
-/// A native grouped overview. The Screen Time report remains inside Apple's
-/// isolated extension; these view models never receive raw usage results.
+/// Native iOS overview. Apple's protected report view owns the usage data.
 struct PAUSEHomeView: View {
     @ObservedObject var model: PAUSEModel
     @ObservedObject private var cloud = PAUSECloud.shared
@@ -16,13 +15,24 @@ struct PAUSEHomeView: View {
     var body: some View {
         List {
             Section {
-                PAUSEIntro(
-                    title: "Make room for what matters.",
-                    subtitle: "A quieter way to notice how you use your time.",
-                    symbol: "circle.dotted"
-                )
+                HStack(spacing: 12) {
+                    Image(systemName: model.monitoring ? "checkmark.circle.fill" : "pause.circle")
+                        .font(.title2)
+                        .foregroundStyle(model.monitoring ? Color.green : Color.secondary)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(model.monitoring ? "Monitoring is on" : "Monitoring is paused")
+                            .font(.headline)
+                        Text(model.monitoring
+                             ? "PAUSE will check in when your daily limit is reached."
+                             : "Set a daily rule to receive a reminder.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 6)
             }
-            .listRowBackground(Color.clear)
 
             Section {
                 if model.screenTimeAuthorized {
@@ -33,13 +43,13 @@ struct PAUSEHomeView: View {
                             devices: .init([.iPhone])
                         )
                     )
-                    .frame(minHeight: 360, idealHeight: 520)
-                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                    .frame(minHeight: 340, idealHeight: 440)
+                    .listRowInsets(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16))
                 } else {
                     ContentUnavailableView {
                         Label("Screen Time is off", systemImage: "hourglass")
                     } description: {
-                        Text("Allow access to view today's activity privately on this iPhone.")
+                        Text("Allow Screen Time access to view today's activity.")
                     } actions: {
                         Button("Allow Screen Time") {
                             Task { await model.authorizeScreenTime() }
@@ -49,105 +59,100 @@ struct PAUSEHomeView: View {
                     .listRowBackground(Color.clear)
                 }
             } header: {
-                PAUSESectionHeading(title: "Screen Time")
+                Text("Screen Time")
+            } footer: {
+                Text("This report is generated privately by iOS. PAUSE does not read the underlying app history.")
             }
 
             Section {
                 HStack(spacing: 12) {
                     Image(systemName: model.category.icon)
-                        .font(PAUSEType.heading(.title3))
-                        .foregroundStyle(model.category.accent)
-                        .frame(width: 28)
+                        .font(.title3)
+                        .frame(width: 30)
+                        .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(model.category.title)
-                            .font(PAUSEType.body(.body, strong: true))
-                        Text("\(model.selectionCount) selected apps, categories or sites")
-                            .font(PAUSEType.body(.subheadline))
+                        Text(model.category.title + " reminder")
+                            .font(.body.weight(.medium))
+                        Text("\(model.selectionCount) selected items")
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: 3) {
                         Text("\(model.thresholdMinutes) min")
-                            .font(PAUSEType.body(.body, strong: true))
-                        Text(model.monitoring ? "Monitoring" : "Paused")
-                            .font(PAUSEType.body(.caption))
-                            .foregroundStyle(model.monitoring ? .green : .secondary)
+                            .font(.body.weight(.semibold))
+                            .monospacedDigit()
+                        Text("Per day")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.vertical, 3)
+                .padding(.vertical, 4)
             } header: {
-                Text("Your daily rule")
+                Text("Daily rule")
             } footer: {
-                Text("One cumulative daily threshold. It does not measure continuous sessions.")
+                Text("The limit is cumulative over the day, not one continuous session.")
             }
 
             Section {
                 if model.recentEvents.isEmpty {
-                    PAUSEInfoRow(
-                        symbol: "bell.slash",
-                        title: "No check-ins yet",
-                        explanation: "A reminder appears here when a selected daily threshold is reached."
-                    )
+                    PAUSEInfoRow(symbol: "bell.slash",
+                                 title: "No reminders yet",
+                                 explanation: "Check-ins appear here after you reach your selected limit.")
                 } else {
                     ForEach(model.recentEvents.prefix(5), id: \.id) { event in
                         Label {
                             VStack(alignment: .leading, spacing: 3) {
-                                Text("\(event.category.capitalized) limit reached")
+                                Text(event.category.capitalized + " limit reached")
+                                    .font(.body.weight(.medium))
                                 Text(event.occurredAt.formatted(date: .abbreviated, time: .shortened))
-                                    .font(PAUSEType.body(.caption))
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
-                            Image(systemName: "clock")
-                                .foregroundStyle(PAUSEPalette.tint)
+                            Image(systemName: "bell")
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
             } header: {
-                PAUSESectionHeading(title: "Recent check-ins")
+                Text("Recent check-ins")
             }
 
             if cloud.enabled && cloud.signedIn {
                 Section {
                     if cloud.macCategoryTotals.isEmpty {
-                        PAUSEInfoRow(
-                            symbol: "macbook",
-                            title: "No Mac activity yet",
-                            explanation: "Enable sharing in PAUSE for Mac to see category totals here."
-                        )
+                        PAUSEInfoRow(symbol: "macbook",
+                                     title: "No synced Mac activity",
+                                     explanation: "Enable sharing in PAUSE for Mac to see category totals.")
                     } else {
                         ForEach(cloud.macCategoryTotals.keys.sorted(), id: \.self) { category in
-                            HStack {
-                                Text(category.capitalized)
-                                Spacer()
-                                Text("\((cloud.macCategoryTotals[category] ?? 0) / 60) min")
-                                    .monospacedDigit()
-                                    .foregroundStyle(.secondary)
-                            }
+                            LabeledContent(category.capitalized,
+                                           value: "\((cloud.macCategoryTotals[category] ?? 0) / 60) min")
                         }
                     }
                 } header: {
-                    Text("Mac activity · Synced")
+                    Text("Mac activity")
                 } footer: {
-                    Text("Only generic Mac categories sync. iPhone Screen Time remains private.")
+                    Text("Only category totals are synced. Your iPhone Screen Time stays private.")
                 }
             }
 
-            Section {
-                PAUSEStatusNotice(text: model.status)
+            if model.status != "Ready when you are." {
+                Section {
+                    PAUSEStatusNotice(text: model.status)
+                }
+                .listRowBackground(Color.clear)
             }
-            .listRowBackground(Color.clear)
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(PAUSEPalette.background)
         .navigationTitle("Today")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Text(Date().formatted(.dateTime.month(.abbreviated).day()))
-                    .font(PAUSEType.body(.subheadline))
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
         }
