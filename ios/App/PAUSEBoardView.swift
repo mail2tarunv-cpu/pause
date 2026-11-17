@@ -32,14 +32,14 @@ struct PAUSEBoardView: View {
                         Spacer()
                         Text("6 × 22")
                             .font(PAUSEType.body(.caption))
-                            .foregroundStyle(.white.opacity(0.65))
+                            .foregroundStyle(PAUSEPalette.secondary)
                     }
                     PAUSEFlapPreview(message: model.boardDraft)
                     Text(boardLayout.overflow ?
                          "Message exceeds six rows. Shorten it to send." :
                          "Your message, exactly as it fits on the board.")
                         .font(PAUSEType.body(.caption))
-                        .foregroundStyle(boardLayout.overflow ? PAUSEPalette.orange : PAUSEPalette.secondary)
+                        .foregroundStyle(boardLayout.overflow ? Color.red : PAUSEPalette.secondary)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -255,16 +255,16 @@ struct PAUSEFlapPreview: View {
                             )
                             Rectangle()
                                 .fill(Color.black.opacity(0.8))
-                                .frame(height: max(1, width * 0.0015))
+                                .frame(height: max(0.6, width * 0.0010))
                             if !["🟥","🟧","🟨","🟩","🟦","🟪"].contains(glyph) {
                                 Text(glyph)
                                     .font(.custom(
                                         "DMMono-Medium",
-                                        size: max(4, cellWidth * 0.63)
+                                        size: max(7, cellWidth * 0.74)
                                     ))
-                                    .minimumScaleFactor(0.55)
+                                    .minimumScaleFactor(0.80)
                                     .lineLimit(1)
-                                    .foregroundStyle(Color(white: 0.94))
+                                    .foregroundStyle(Color(red: 0.96, green: 0.95, blue: 0.93))
                             }
                         }
                         .frame(width: cellWidth, height: cellHeight)
