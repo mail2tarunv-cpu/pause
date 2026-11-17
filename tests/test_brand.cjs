@@ -43,14 +43,17 @@ assert.match(tokens, /prefers-reduced-motion: reduce/);
 assert.match(tokens, /\.tile \.glyph/);
 
 const iosTheme = load("ios/App/PAUSETheme.swift");
-assert.match(iosTheme, /SpaceGrotesk-Bold/);
-assert.match(iosTheme, /DMMono-Regular/);
-assert.match(iosTheme, /PAUSEShapeStamp/);
+assert.match(iosTheme, /systemGroupedBackground/);
+assert.match(iosTheme, /\.system\(style, design: \.default/);
+assert.doesNotMatch(iosTheme, /PAUSEShapeStamp|SpaceGrotesk-Bold|DMMono-Regular/);
 assert.match(load("ios/App/Info.plist"), /UIAppFonts/);
 assert.match(load("ios/Report/Info.plist"), /UIAppFonts/);
-assert.match(load("ios/Report/PAUSEReportExtension.swift"), /SpaceGrotesk-Bold/);
+assert.match(load("ios/Report/PAUSEReportExtension.swift"), /\.system\(style, design: \.default/);
+assert.match(load("ios/App/PAUSEBoardView.swift"), /"DMMono-Medium"/);
 assert.match(load("macos/App/PAUSEStyle.swift"), /CTFontManagerRegisterFontsForURL/);
-assert.match(load("macos/App/MacDashboard.swift"), /PAUSEMacType/);
+assert.match(load("macos/App/MacDashboard.swift"), /PAUSEMacPanel/);
+assert.match(load("macos/App/MacDashboard.swift"), /"DMMono-Medium"/);
+assert.match(load("macos/App/PAUSEStyle.swift"), /\.system\(style, design: \.default/);
 assert.match(load("macos/App/PAUSEMacApp.swift"), /PAUSEMacFonts.register\(\)/);
 
 const extensionCSS = load("browser-extension/popup.css");
@@ -61,4 +64,4 @@ assert.match(extensionCSS, /fonts\/SpaceGrotesk-Bold\.ttf/);
 const relay = load("relay.py");
 assert.match(relay, /"\/design\/pause-theme\.css"/);
 assert.match(relay, /"text\/css; charset=utf-8"/);
-console.log("PAUSE brand integration passed across both native apps, the browser and all web controllers.");
+console.log("PAUSE brand integration passed: editorial web, native SF interfaces, custom board glyphs, and licensed bundled fonts.");
