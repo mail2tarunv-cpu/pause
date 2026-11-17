@@ -1,7 +1,7 @@
 # PAUSE — Apple-native interface audit
 Last review: November 16, 2026
 
-**Design intent:** PAUSE should feel at home on an iPhone and Mac, without falsely imitating Apple's own apps. We use SwiftUI-native patterns for navigation, content density, type, form controls, semantic colors and accessibility. The physical split-flap display is the intentional custom component.
+**Design intent:** PAUSE should feel at home on an iPhone and Mac, without falsely imitating Apple's own apps. Native UI now uses San Francisco instead of the website's editorial fonts. We use SwiftUI-native patterns for navigation, content density, type, form controls, semantic colors and accessibility. The physical split-flap display is the intentional custom component.
 
 ## Decisions implemented
 
@@ -26,11 +26,11 @@ Last review: November 16, 2026
 
 | Area | System-first implementation | Manual checks still required |
 |---|---|---|
-| Overview | NavigationSplitView sidebar, overview heading, native GroupBox summaries, category ProgressView | Min-width window resizing, VoiceOver |
+| Overview | NavigationSplitView sidebar, full-width balanced metrics, unified system panels, category ProgressView | Min-width window resizing, VoiceOver |
 | Activity | App/site records, semantic labels, native progress bars and destructive confirmation | Real app idle timing and long names |
 | Browser | Connection state, localhost listener, obscured pairing token, native Copy/Rotate actions | Extension pairing, focus behavior |
 | Cloud | Grouped Form, native TextField/SecureField/Toggle, signed-in/offline states | Hosted Supabase provisioned and authenticated |
-| Board | Neutral dark physical board preview inside native GroupBox | Message fit and display refresh |
+| Board | Physical 6×22 board preview inside a native system-colored panel | Message fit and display refresh |
 | Menu bar | Native MenuBarExtra commands, window activation, Pause/Resume | Launch/close/window focus behavior |
 
 - Removed the hard-coded beige page background and custom website-like cards.
