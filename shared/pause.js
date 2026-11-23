@@ -15,9 +15,14 @@ const catalog=[
 const sampleDevices={
 discord:{mac:30,phone:10},instagram:{mac:0,phone:46},youtube:{mac:34,phone:35},figma:{mac:112,phone:0},chrome:{mac:76,phone:41}
 };
+// Initial suggestions only; the person's saved classification always wins.
+const categories=["entertainment","productivity"];
+const autoCategory=a=>/discord|instagram|youtube|netflix|tiktok|twitch|reddit|facebook|spotify|steam|game|social|snapchat|hulu|disney/i.test(String(a.id)+" "+String(a.name))?"entertainment":"productivity";
+const categoryName=c=>c==="entertainment"?"Entertainment":"Productivity";
+const categoryIcon=c=>c==="entertainment"?"play":"briefcase-business";
 const start=()=>({
-version:4,onboarded:false,view:"today",period:"day",reminders:true,paused:false,
-quietStart:"22:00",quietEnd:"08:00",apps:catalog.map(x=>({...x,usage:{...sampleDevices[x.id]},minutes:sampleDevices[x.id].mac+sampleDevices[x.id].phone})),
+version:5,onboarded:false,view:"today",period:"day",reminders:true,paused:false,
+quietStart:"22:00",quietEnd:"08:00",apps:catalog.map(x=>({...x,category:autoCategory(x),selected:autoCategory(x)==="entertainment",enabled:autoCategory(x)==="entertainment",usage:{...sampleDevices[x.id]},minutes:sampleDevices[x.id].mac+sampleDevices[x.id].phone})),
 activities:[{id:"read",name:"Reading",time:"20:00",days:"Every day",selected:true},{id:"walk",name:"Walking",time:"17:00",days:"Weekends",selected:true}],
 choice:null,boardReminders:false
 });
@@ -54,8 +59,9 @@ const sum=Math.max(0,Math.round(Number(app.minutes)||0)),fraction=sample.mac/Mat
 const mac=Math.round(sum*fraction);app.usage={mac,phone:sum-mac};
 }
 app.minutes=app.usage.mac+app.usage.phone;
+if(!categories.includes(app.category))app.category=autoCategory(app);
 }
-state.version=4;
+state.version=5;
 let deviceScope="all";
 state.view=["today","plan","settings","activity"].includes(state.view)?state.view:"today";
 let step=0;
@@ -65,12 +71,18 @@ let feedbackReason="bad-timing";
 let alternateId=null;
 const icon=name=>`<i data-lucide="${name}" aria-hidden="true"></i>`;
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const selectedApps=()=>state.apps.filter(a=>a.selected);
+const selectedApps=()=>state.apps.filter(a=>a.selected&&a.enabled);
 const activeHobbies=()=>state.activities.filter(a=>a.selected);
 const getApp=id=>state.apps.find(a=>a.id===id);
 const getHobby=id=>state.activities.find(a=>a.id===id);
 const used=(a,scope=deviceScope)=>scope==="all"?a.usage.mac+a.usage.phone:a.usage[scope]||0;
 const total=(scope=deviceScope)=>state.apps.reduce((sum,a)=>sum+used(a,scope),0);
+function categorySummary(period="day"){
+const values=categories.map(c=>state.apps.filter(a=>a.category===c).reduce((sum,a)=>sum+periodUsed(a,deviceScope,period),0));
+const sum=values[0]+values[1];
+return `<div class="category-summary" aria-label="Usage by category"><div class="category-summary-track" role="img" aria-label="Entertainment ${fmt(values[0])}, Productivity ${fmt(values[1])}"><span class="entertainment-fill" style="width:${sum?values[0]/sum*100:0}%"></span><span class="productivity-fill" style="width:${sum?values[1]/sum*100:0}%"></span></div><div class="category-summary-labels">${categories.map((c,i)=>`<div><span class="category-key ${c}"></span><span>${categoryName(c)}</span><strong>${fmt(values[i])}</strong></div>`).join("")}</div></div>`;
+}
+function categoryGroup(c,body){return `<div class="category-group"><div class="category-group-title">${icon(categoryIcon(c))}<h3>${categoryName(c)}</h3></div>${body}</div>`;}
 const scopeLabel=()=>deviceScope==="all"?"All devices":deviceScope==="mac"?"Mac":"iPhone";
 const fmtParts=n=>({h:Math.floor(n/60),m:Math.round(n%60)});
 const hobbyIcon=h=>/read|book/i.test(h?.name||"")?"book-open":/walk|run/i.test(h?.name||"")?"footprints":/music|guitar/i.test(h?.name||"")?"music":/sketch|draw|paint/i.test(h?.name||"")?"pencil":/cook/i.test(h?.name||"")?"cooking-pot":/rest|sleep/i.test(h?.name||"")?"coffee":"leaf";
@@ -153,14 +165,14 @@ return `<div class="preview-banner" role="status"><span><strong>${msg}</strong> 
 }
 function today(){
 const hobby=nextHobby(),apps=selectedApps().filter(a=>deviceScope==="all"||used(a)>0);
-const over=apps.filter(a=>a.enabled&&a.minutes>=a.limit);
+const over=apps.filter(a=>a.enabled&&a.minutes>=a.limit).sort((a,b)=>Number(b.category==="entertainment")-Number(a.category==="entertainment"));
 return header("Today",currentDate(),scopeControl())+choiceBanner()+
 `<div class="hero-grid">
 <section class="card pad hero-usage" aria-label="Screen time overview">
 <div class="section-heading"><h2>${deviceScope==="all"?"Screen time":scopeLabel()+" screen time"}</h2><span class="sample-caption">Sample</span></div>
 <div class="hero-numbers">${timeDisplay(total())}</div>
 <p class="hero-meta">${deviceScope==="all"?"Total device time · may include overlap":"Sample usage across tracked apps"}</p>
-${deviceScope==="all"?deviceBreakdown():chart("day")}
+${deviceScope==="all"?deviceBreakdown():chart("day")}${categorySummary()}
 <button class="text-action activity-link" data-view="activity">View activity ${icon("arrow-right")}</button>
 </section>
 <section class="card pad hero-hobby" aria-label="Upcoming activity">
@@ -168,8 +180,8 @@ ${deviceScope==="all"?deviceBreakdown():chart("day")}
 <div class="hobby-content"><h2 class="hobby-title">${hobby?esc(hobby.name):"Make time for something else"}</h2><p class="hobby-info">${hobby?`${esc(hobby.days)} · ${niceTime(hobby.time)}`:"Add an activity you'd like more time for."}</p></div>
 <button class="btn secondary hobby-action" data-view="plan">Edit plan ${icon("arrow-up-right")}</button>
 </section></div>
-<section class="card pad limits-card"><div class="section-heading"><div><h2>App limits</h2><p class="section-subtitle">Daily limits are shared across devices.</p></div><button class="text-action" data-view="plan">Manage ${icon("arrow-right")}</button></div>
-${apps.length?`<div class="usage-list">${apps.map(usageRow).join("")}</div>`:`<div class="empty-state"><h3>No limited apps here</h3><p>Choose an app in My plan, or switch devices.</p><button class="btn secondary" style="margin-top:16px" data-view="plan">Manage limits</button></div>`}
+<section class="card pad limits-card"><div class="section-heading"><div><h2>App limits</h2><p class="section-subtitle">Entertainment first. Limits apply across devices.</p></div><button class="text-action" data-view="plan">Manage ${icon("arrow-right")}</button></div>
+${apps.length?`<div class="usage-list">${categories.map(c=>{const group=apps.filter(a=>a.category===c);return group.length?categoryGroup(c,group.map(usageRow).join("")):""}).join("")}</div>`:`<div class="empty-state"><h3>No limited apps here</h3><p>Choose an app in My plan, or switch devices.</p><button class="btn secondary" style="margin-top:16px" data-view="plan">Manage limits</button></div>`}
 ${over.length&&!state.choice&&state.reminders&&!state.paused?`<button class="reminder-link" data-action="reminder" data-id="${over[0].id}"><span class="reminder-link-icon">${icon("bell")}</span><span><strong>${esc(over[0].name)} · ${over[0].minutes===over[0].limit?"Limit reached":(over[0].minutes-over[0].limit)+" min over"}</strong><small>View check-in</small></span>${icon("chevron-right")}</button>`:""}
 </section><p class="footer-note">Sample device data · no live monitoring or cross-device sync.</p>`;
 }
@@ -180,22 +192,21 @@ return header("Activity",week?"Last seven days":"Today",scopeControl())+
 `<section class="card pad activity-card"><div class="metric-head"><h2>${scopeLabel()} usage</h2><div class="tabs" role="group" aria-label="Activity period"><button data-period="day" aria-pressed="${!week}">Day</button><button data-period="week" aria-pressed="${week}">Week</button></div></div>
 <div class="hero-numbers">${timeDisplay(sum)}</div><p class="hero-meta">${week?"Seven days of sample device time":"Sample device time today"}${deviceScope==="all"?" · may include overlap":""}</p>
 ${chart(state.period)}
-${deviceScope==="all"?deviceBreakdown(state.period):""}</section>
-<section class="card pad spaced"><div class="section-heading"><h2>By app</h2><span class="sample-caption">${week?"7 days":"Today"}</span></div><div class="usage-list">${apps.map(a=>{const n=periodUsed(a,deviceScope,state.period);return `<div class="usage-row detail-row">${appIcon(a)}<div class="row-main"><span class="row-title">${esc(a.name)}</span><div class="track" aria-hidden="true"><span style="width:${sum?n/sum*100:0}%"></span></div></div><span class="usage-value">${fmt(n)}</span></div>`}).join("")||'<p class="inline-helper">No sample usage for this device.</p>'}</div></section>
+${deviceScope==="all"?deviceBreakdown(state.period):""}${categorySummary(state.period)}</section>
+<section class="card pad spaced"><div class="section-heading"><h2>By app</h2><span class="sample-caption">${week?"7 days":"Today"}</span></div><div class="usage-list">${categories.map(c=>{const group=apps.filter(a=>a.category===c);return group.length?categoryGroup(c,group.map(a=>{const n=periodUsed(a,deviceScope,state.period);return `<div class="usage-row detail-row">${appIcon(a)}<div class="row-main"><span class="row-title">${esc(a.name)}</span><div class="track" aria-hidden="true"><span class="${c==="entertainment"?"entertainment-fill":""}" style="width:${sum?n/sum*100:0}%"></span></div></div><span class="usage-value">${fmt(n)}</span></div>`}).join("")):""}).join("")||'<p class="inline-helper">No sample usage for this device.</p>'}</div></section>
 <p class="footer-note">Illustrative activity, not measured from your devices.</p>`;
 }
 function plan(){
-const apps=selectedApps();const hobbies=activeHobbies();
+const hobbies=activeHobbies();
 return header("My plan","Limits and activities")+
-`<section class="card pad plan-block">
-<div class="section-heading"><h2>Daily app limits</h2><button class="text-action" data-action="add-app">${icon("plus")} Add app</button></div>
-${apps.length?apps.map(a=>`<div class="plan-item">${appIcon(a)}<div><strong class="row-title">${esc(a.name)}</strong><span class="row-detail">${a.limit} min / day across devices · ${a.enabled?"On":"Off"}</span></div><button class="icon-button" aria-label="Edit ${esc(a.name)} limit" data-action="edit-app" data-id="${a.id}">${icon("pencil")}</button></div>`).join(""):`<p class="inline-helper">No app limits set.</p>`}
+`<section class="card pad plan-block"><div class="section-heading"><h2>Apps &amp; limits</h2></div>
+<p class="section-subtitle plan-intro">Apps are categorised automatically. Change a category or reminder at any time.</p>
+${categories.map(c=>{const group=state.apps.filter(a=>a.category===c);return categoryGroup(c,`<p class="category-hint">${c==="entertainment"?"Reminders on by default.":"Tracked without reminders unless you turn them on."}</p>${group.length?group.map(a=>`<button class="app-plan-row" data-action="edit-app" data-id="${esc(a.id)}" aria-label="Edit ${esc(a.name)} category and reminders">${appIcon(a)}<span class="app-plan-copy"><strong>${esc(a.name)}</strong><small>${a.selected&&a.enabled?a.limit+" min / day":"No reminder"}</small></span><span class="rule-state ${a.selected&&a.enabled?"rule-on":""}">${a.selected&&a.enabled?"On":"Off"}</span>${icon("chevron-right")}</button>`).join(""):'<p class="inline-helper empty-category">No apps in this category.</p>'}`);}).join("")}
 </section>
 <section class="card pad">
 <div class="section-heading"><h2>Activities</h2><button class="text-action" data-action="add-hobby">${icon("plus")} Add activity</button></div>
 ${hobbies.length?hobbies.map(h=>`<div class="plan-item"><span class="app-icon">${icon(hobbyIcon(h))}</span><div><strong class="row-title">${esc(h.name)}</strong><span class="row-detail">${esc(h.days)} · ${niceTime(h.time)}</span></div><button class="icon-button" aria-label="Edit ${esc(h.name)}" data-action="edit-hobby" data-id="${esc(h.id)}">${icon("pencil")}</button></div>`).join(""):`<p class="inline-helper">Add a hobby, a short break, or simply time to rest.</p>`}
-</section>
-<p class="footer-note">You can change your plan whenever you like. PAUSE never blocks an app or assumes you completed an activity.</p>`;
+</section><p class="footer-note">Both categories count toward screen time. Only apps with reminders enabled can trigger a check-in.</p>`;
 }
 function settings(){
 return header("Settings","Preferences and devices")+
@@ -220,8 +231,8 @@ function onboarding(){
 const steps=["Welcome","Choose apps","Set limits","Choose activities","Review"];
 let body="";
 if(step===0)body=`<h1 class="onboarding-title">A little less screen.<br>More life.</h1><p class="onboarding-intro">Set limits for the apps that tend to run long. PAUSE will let you know when you've passed one and suggest something you'd rather be doing.</p><div class="note"><strong>You're in a preview.</strong> This website uses sample activity. Real app tracking requires the native Mac or iPhone app.</div>`;
-if(step===1)body=`<h1 class="onboarding-title">Which apps run long?</h1><p class="onboarding-intro">Choose where a reminder would be useful. You can change this later.</p><div class="card pad">${state.apps.map(a=>`<label class="onboard-choice"><input type="checkbox" data-onboard-app="${a.id}" ${a.selected?"checked":""}><span class="app-icon">${icon(a.icon)}</span><span>${esc(a.name)}</span></label>`).join("")}</div>`;
-if(step===2)body=`<h1 class="onboarding-title">Set your daily limits.</h1><p class="onboarding-intro">These trigger a reminder, never a lockout.</p><div class="card pad">${selectedApps().map(a=>`<div class="onboard-limit">${appIcon(a)}<span class="row-title">${esc(a.name)}</span><div class="form-field"><label class="sr-only" for="onboard-limit-${a.id}">Limit for ${esc(a.name)}</label><select id="onboard-limit-${a.id}" data-onboard-limit="${a.id}">${[15,20,30,45,60,90,120,180,240].map(n=>`<option value="${n}" ${a.limit===n?"selected":""}>${n} min</option>`).join("")}</select></div></div>`).join("")}</div>`;
+if(step===1)body=`<h1 class="onboarding-title">Choose your reminders.</h1><p class="onboarding-intro">Entertainment apps are selected by default. Add productivity apps if you want reminders for them too.</p><div class="card pad">${categories.map(c=>categoryGroup(c,state.apps.filter(a=>a.category===c).map(a=>`<div class="onboard-app-row"><label class="onboard-choice"><input type="checkbox" data-onboard-app="${esc(a.id)}" ${a.selected&&a.enabled?"checked":""}><span class="app-icon">${icon(a.icon)}</span><span>${esc(a.name)}</span></label><div class="form-field category-picker"><label class="sr-only" for="cat-${esc(a.id)}">Category for ${esc(a.name)}</label><select id="cat-${esc(a.id)}" data-onboard-category="${esc(a.id)}">${categories.map(x=>`<option value="${x}" ${a.category===x?"selected":""}>${categoryName(x)}</option>`).join("")}</select></div></div>`).join("")||'<p class="inline-helper">No apps in this category.</p>')).join("")}</div><p class="footer-note">These are suggested categories, not a judgement about how you use an app.</p>`;
+if(step===2)body=`<h1 class="onboarding-title">Set your daily limits.</h1><p class="onboarding-intro">These trigger a reminder, never a lockout.</p><div class="card pad">${selectedApps().map(a=>`<div class="onboard-limit">${appIcon(a)}<span class="row-title">${esc(a.name)}</span><div class="form-field"><label class="sr-only" for="onboard-limit-${a.id}">Limit for ${esc(a.name)}</label><select id="onboard-limit-${a.id}" data-onboard-limit="${a.id}">${[15,20,30,45,60,90,120,180,240].map(n=>`<option value="${n}" ${a.limit===n?"selected":""}>${n} min</option>`).join("")}</select></div></div>`).join("")||'<p class="inline-helper">No reminders selected. You can set limits later.</p>'}</div>`;
 if(step===3){for(const name of ["Sketching","Running","Cooking","Music","Rest"]){if(!state.activities.some(a=>a.name.toLowerCase()===name.toLowerCase()))state.activities.push({id:"option-"+name.toLowerCase(),name,time:"20:00",days:"Every day",selected:false});}}
 if(step===3)body=`<h1 class="onboarding-title">What would you rather do?</h1><p class="onboarding-intro">Choose activities you want to make time for. Rest counts, too.</p><div class="activity-pills">${state.activities.map(a=>`<button class="activity-pill" data-onboard-hobby="${esc(a.id)}" aria-pressed="${a.selected}">${icon(hobbyIcon(a))}${esc(a.name)}</button>`).join("")}</div><div class="card pad">${activeHobbies().length?activeHobbies().map(a=>`<div class="schedule-row"><strong class="schedule-name">${esc(a.name)}</strong><div class="form-field"><label for="onboard-time-${esc(a.id)}">Time</label><input type="time" id="onboard-time-${esc(a.id)}" value="${esc(a.time)}" data-onboard-time="${esc(a.id)}"></div><div class="form-field"><label for="onboard-days-${esc(a.id)}">Days</label><select id="onboard-days-${esc(a.id)}" data-onboard-days="${esc(a.id)}">${["Every day","Weekdays","Weekends","Whenever"].map(x=>`<option ${a.days===x?"selected":""}>${x}</option>`).join("")}</select></div></div>`).join(""):`<p class="inline-helper">No activities chosen. You can add one later.</p>`}</div><p class="footer-note">More activities can be added in My plan.</p>`;
 if(step===4)body=`<h1 class="onboarding-title">Your starting plan.</h1><p class="onboarding-intro">Check the basics. Everything stays editable.</p><div class="card pad review-list"><div class="review-item"><strong>App limits</strong><p>${selectedApps().map(a=>esc(a.name)+" · "+a.limit+" min/day").join(" · ")||"None selected"}</p></div><div class="review-item"><strong>Activities</strong><p>${activeHobbies().map(a=>esc(a.name)+" · "+niceTime(a.time)).join(" · ")||"None yet"}</p></div><div class="review-item"><strong>Reminders</strong><p>Optional, non-blocking check-ins with Undo.</p></div></div>`;
@@ -237,15 +248,15 @@ function dialogShell(title,body,form=false){
 return `<div class="dialog-backdrop"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-header"><h2 id="dialog-title">${esc(title)}</h2><button type="button" class="icon-button" data-action="close" aria-label="Close dialog">${icon("x")}</button></div>${body}</section></div>`;
 }
 function editAppDialog(add){
-const app=add?state.apps.find(a=>!a.selected)||null:getApp(modal.id);
-if(!app)return dialogShell("No more apps",`<p>All demo apps already have a limit.</p>`);
-const picker=add?`<div class="form-field"><label for="edit-app-id">App</label><select id="edit-app-id" name="appId">${state.apps.filter(a=>!a.selected).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select></div>`:`<input type="hidden" name="appId" value="${esc(app.id)}">`;
-return dialogShell(add?"Add an app limit":"Edit "+app.name,`<form id="app-form">${picker}
-<div class="form-field"><label for="edit-limit">Daily limit in minutes</label><input type="number" id="edit-limit" name="limit" required min="5" max="240" step="5" value="${app.limit}"><small>PAUSE will remind you, not block the app.</small></div>
-<label style="display:flex;align-items:center;gap:10px;font-size:.84rem"><input type="checkbox" name="enabled" ${app.enabled?"checked":""} style="width:20px;height:20px;accent-color:#30382F"> Enable reminders for this app</label>
-<div class="dialog-actions">${!add?`<button class="btn ghost" type="button" data-action="remove-app" data-id="${app.id}">Remove</button>`:""}<button class="btn secondary" data-action="close" type="button">Cancel</button><button class="btn" type="submit">Save limit</button></div>
-</form>`,true);
+const app=getApp(modal.id)||state.apps.find(a=>!a.selected);
+if(!app)return dialogShell("Apps",'<p>No apps available.</p>');
+return dialogShell(app.name,`<form id="app-form"><input type="hidden" name="appId" value="${esc(app.id)}">
+<div class="form-field"><label for="edit-category">Category</label><select id="edit-category" name="category">${categories.map(c=>`<option value="${c}" ${app.category===c?"selected":""}>${categoryName(c)}</option>`).join("")}</select><small>Change this to match how you use the app.</small></div>
+<label class="reminder-check"><input type="checkbox" id="edit-enabled" name="enabled" ${app.selected&&app.enabled?"checked":""}><span><strong>Daily reminder</strong><small>Notify me when I reach the limit across devices.</small></span></label>
+<div class="form-field" id="limit-field" ${app.selected&&app.enabled?"":"hidden"}><label for="edit-limit">Daily limit in minutes</label><input type="number" id="edit-limit" name="limit" required min="5" max="240" step="5" value="${app.limit||30}" ${app.selected&&app.enabled?"":"disabled"}></div>
+<div class="dialog-actions"><button class="btn secondary" data-action="close" type="button">Cancel</button><button class="btn" type="submit">Save changes</button></div></form>`);
 }
+
 function editHobbyDialog(add){
 const hobby=add?{id:"",name:"",time:"20:00",days:"Every day"}:getHobby(modal.id);
 if(!hobby)return"";
@@ -316,7 +327,7 @@ function act(action,id,button){
 if(action==="skip"){state.onboarded=true;state.view="today";announce("Demo started.");render(true);return;}
 if(action==="back"){step=Math.max(0,step-1);render(true);return;}
 if(action==="next"){
-if(step===1&&!selectedApps().length){announce("Select at least one app or explore the demo.");return}
+
 step=Math.min(4,step+1);render(true);return;}
 if(action==="finish"){state.onboarded=true;state.view="today";step=0;render(true);announce("Your plan is ready.");return;}
 if(action==="setup"){step=0;state.onboarded=false;closeModal();render(true);return;}
@@ -352,6 +363,13 @@ act(button.dataset.action,button.dataset.id,button);
 });
 document.addEventListener("change",e=>{
 const el=e.target;
+if(el.id==="edit-category"||el.id==="edit-enabled"){
+const check=document.getElementById("edit-enabled"),field=document.getElementById("limit-field"),input=document.getElementById("edit-limit");
+if(el.id==="edit-category"&&check)check.checked=el.value==="entertainment";
+if(check&&field&&input){field.hidden=!check.checked;input.disabled=!check.checked;}
+return;
+}
+if(el.dataset.onboardCategory){const a=getApp(el.dataset.onboardCategory);if(a&&categories.includes(el.value)){a.category=el.value;a.selected=a.enabled=el.value==="entertainment";render();root.querySelector('[data-onboard-category="'+a.id+'"]')?.focus();}return;}
 if(el.dataset.onboardApp){const a=getApp(el.dataset.onboardApp);if(a){a.selected=el.checked;a.enabled=el.checked;save();}return}
 if(el.dataset.onboardLimit){const a=getApp(el.dataset.onboardLimit);if(a){a.limit=Number(el.value)||30;save();}return}
 if(el.dataset.onboardTime){const h=getHobby(el.dataset.onboardTime);if(h){h.time=mins(el.value);save();}return}
@@ -364,8 +382,10 @@ if(!["app-form","hobby-form","quiet-form"].includes(e.target.id))return;e.preven
 const f=new FormData(e.target);
 if(e.target.id==="app-form"){
 const id=String(f.get("appId"));const a=getApp(id);if(!a)return;
-const limit=Number(f.get("limit"));if(!Number.isFinite(limit)||limit<5||limit>240||limit%5!==0){announce("Choose a limit from 5 to 240 minutes in steps of five.");return}
-a.selected=true;a.limit=limit;a.enabled=f.has("enabled");closeModal();render(true);announce(a.name+" limit saved.");return;
+const category=String(f.get("category")||a.category);if(!categories.includes(category))return;
+const enabled=f.has("enabled"),limit=enabled?Number(f.get("limit")):a.limit;
+if(enabled&&(!Number.isFinite(limit)||limit<5||limit>240||limit%5!==0)){announce("Choose a limit from 5 to 240 minutes in steps of five.");return}
+a.category=category;a.selected=enabled;a.enabled=enabled;a.limit=limit||30;closeModal();render(true);announce(a.name+" preferences saved.");return;
 }
 if(e.target.id==="hobby-form"){
 const name=String(f.get("name")||"").trim().slice(0,36),time=mins(String(f.get("time")||"20:00")),days=String(f.get("days")||"Every day");
