@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f6f5f1">
+<meta name="description" content="PAUSE for Mac — an interactive desktop design prototype. Sample data only.">
+<title>PAUSE — Mac Prototype</title>
+<link rel="stylesheet" href="./styles.css">
+<script src="./app.js" defer></script>
+</head>
+<body>
+<div class="site-shell">
+  <div class="outside-brand"><span class="brand-dot"></span> PAUSE <span class="outside-divider">/</span> MAC DESIGN PROTOTYPE</div>
+  <div class="desktop-window" id="app-window">
+    <div class="titlebar">
+      <div class="traffic" aria-label="Mac window controls preview"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+      <div class="titlebar-center"><span class="app-monogram">P.</span> PAUSE <span class="titlebar-divider">/</span> MAC</div>
+      <div class="titlebar-right"><span class="live-dash"></span> <span>DESIGN PREVIEW</span></div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="App navigation">
+        <div class="side-top"><div class="brand-lockup"><span class="brand-mark">P<span class="brand-period">.</span></span><div><strong>PAUSE</strong><small>LESS SCREEN. MORE LIFE.</small></div></div></div>
+        <nav id="nav" aria-label="Main navigation"></nav>
+        <div class="side-bottom">
+          <div class="sidebar-today" id="sidebar-hobby"></div>
+          <div class="sidebar-meta"><span class="demo-pulse"></span> SAMPLE ACTIVITY <span class="muted-point">·</span> LOCAL PREVIEW</div>
+          <a class="side-link" href="../phone/" target="_blank" rel="noopener">Open phone prototype <span aria-hidden="true">↗</span></a>
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="workspace-header">
+          <div class="breadcrumb"><span class="breadcrumb-light">PAUSE</span><span class="slash">/</span><span id="breadcrumb-page">Overview</span></div>
+          <div class="header-actions"><span class="date-label" id="date-label"></span><button class="top-button" type="button" id="header-prompt" aria-label="Preview your screen time reminder">Preview reminder <span aria-hidden="true">↗</span></button><span class="initial-avatar">P</span></div>
+        </header>
+        <main id="main" tabindex="-1"></main>
+      </div>
+    </div>
+  </div>
+  <footer class="outside-foot"><span>An interface study for the PAUSE Mac companion.</span><span>WEB PREVIEW <span class="sep">/</span> NO DEVICE TRACKING</span></footer>
+</div>
+<div id="overlay-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+</body>
+</html>
