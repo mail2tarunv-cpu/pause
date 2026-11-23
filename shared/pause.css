@@ -107,7 +107,7 @@ i[data-lucide],svg.lucide{display:inline-flex;vertical-align:middle;width:19px;h
 .kpi strong{display:block;font-size:1.8rem;font-weight:550;letter-spacing:-.04em;margin-top:10px;font-variant-numeric:tabular-nums}
 .metric-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .tabs{display:flex;gap:4px;background:#EDEFEA;padding:4px;border-radius:13px}
-.tabs button{border:0;border-radius:9px;background:transparent;padding:9px 17px;min-height:38px;font-size:.8rem;color:var(--muted);font-weight:600}
+.tabs button{border:0;border-radius:9px;background:transparent;padding:9px 17px;min-height:44px;font-size:.8rem;color:var(--muted);font-weight:600}
 .tabs button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 4px #19201717}
 .spaced{margin-top:29px}
 .plan-block{margin-bottom:27px}
@@ -141,10 +141,11 @@ i[data-lucide],svg.lucide{display:inline-flex;vertical-align:middle;width:19px;h
 .settings-copy{display:grid;gap:5px}
 .settings-copy strong{font-size:.87rem}
 .settings-copy p{font-size:.75rem;color:var(--muted);max-width:460px}
-.switch{position:relative;min-height:28px!important;height:28px;width:49px;min-width:49px;flex:0 0 49px;border:0;border-radius:20px;background:#BAC0B8;padding:3px}
-.switch[aria-checked=true]{background:#30382F}
-.switch:after{content:"";width:22px;height:22px;display:block;background:white;border-radius:50%;box-shadow:0 1px 2px #0003;transition:transform .15s}
-.switch[aria-checked=true]:after{transform:translateX(21px)}
+.switch{position:relative;min-height:44px!important;height:44px;width:58px;min-width:58px;flex:0 0 58px;border:0;background:transparent;padding:0;border-radius:22px}
+.switch::before{content:"";position:absolute;left:3px;right:3px;top:8px;height:28px;background:#BAC0B8;border-radius:20px;transition:background .15s}
+.switch[aria-checked=true]::before{background:#30382F}
+.switch::after{content:"";position:absolute;left:6px;top:11px;width:22px;height:22px;background:#fff;border-radius:50%;box-shadow:0 1px 2px #0003;transition:transform .15s}
+.switch[aria-checked=true]::after{transform:translateX(25px)}
 .note{padding:14px 17px;border-radius:12px;background:#F1F3EE;color:#566057;font-size:.8rem;line-height:1.6;border:1px solid #E4E9E0}
 .note.warm{background:var(--accent-soft);border-color:#EFDBD2;color:#764F3E}
 .preview-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:#F9EDE2;border:1px solid #F0D9C9;color:#51443B;border-radius:13px;margin:-7px 0 22px;font-size:.8rem}

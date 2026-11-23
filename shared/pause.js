@@ -298,8 +298,8 @@ if(action==="dismiss"){finishChoice("dismiss",modal?.id);return}
 if(action==="undo"){state.choice=null;render();announce("Previous reminder settings restored.");return}
 if(action==="toggle-reminders"){state.reminders=!state.reminders;render();announce(state.reminders?"Reminders on.":"Reminders off.");return}
 if(action==="toggle-pause"){state.paused=!state.paused;render();announce(state.paused?"Reminder previews paused.":"Reminder previews resumed.");return}
-if(action==="remove-app"){const a=getApp(id);if(a){a.selected=false;closeModal();render();announce(a.name+" removed from your plan.");}return}
-if(action==="remove-hobby"){state.activities=state.activities.filter(h=>h.id!==id);closeModal();render();announce("Activity removed.");return}
+if(action==="remove-app"){const a=getApp(id);if(a){a.selected=false;closeModal();render(true);announce(a.name+" removed from your plan.");}return}
+if(action==="remove-hobby"){state.activities=state.activities.filter(h=>h.id!==id);closeModal();render(true);announce("Activity removed.");return}
 if(action==="add-time"){
 const a=getApp("discord");if(!a)return;
 const before=a.minutes<a.limit;a.minutes+=10;render();announce("Added ten sample minutes to Discord.");
@@ -329,16 +329,16 @@ const f=new FormData(e.target);
 if(e.target.id==="app-form"){
 const id=String(f.get("appId"));const a=getApp(id);if(!a)return;
 const limit=Number(f.get("limit"));if(!Number.isFinite(limit)||limit<5||limit>240||limit%5!==0){announce("Choose a limit from 5 to 240 minutes in steps of five.");return}
-a.selected=true;a.limit=limit;a.enabled=f.has("enabled");closeModal();render();announce(a.name+" limit saved.");return;
+a.selected=true;a.limit=limit;a.enabled=f.has("enabled");closeModal();render(true);announce(a.name+" limit saved.");return;
 }
 if(e.target.id==="hobby-form"){
 const name=String(f.get("name")||"").trim().slice(0,36),time=mins(String(f.get("time")||"20:00")),days=String(f.get("days")||"Every day");
 if(!name){announce("Enter an activity name.");return}
 if(modal?.type==="add-hobby")state.activities.push({id:"h"+Date.now(),name,time,days,selected:true});
 else {const h=getHobby(modal?.id);if(h){h.name=name;h.time=time;h.days=days;}}
-closeModal();render();announce("Activity saved.");return;
+closeModal();render(true);announce("Activity saved.");return;
 }
-if(e.target.id==="quiet-form"){state.quietStart=String(f.get("start")||"22:00");state.quietEnd=String(f.get("end")||"08:00");closeModal();render();announce("Quiet hours saved.");}
+if(e.target.id==="quiet-form"){state.quietStart=String(f.get("start")||"22:00");state.quietEnd=String(f.get("end")||"08:00");closeModal();render(true);announce("Quiet hours saved.");}
 });
 document.addEventListener("keydown",e=>{
 if(!modal)return;
