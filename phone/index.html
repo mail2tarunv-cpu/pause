@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f4">
+<meta name="description" content="PAUSE — a mobile concept for making time for what matters. Interactive browser prototype.">
+<title>PAUSE — Phone prototype</title>
+<style>
+:root{--ink:#242527;--muted:#999b9d;--line:#e7e7e8;--bg:#f5f5f5;--card:#fff;--orange:#ff502e;--serif:Georgia,'Times New Roman',serif;--sans:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:var(--sans);-webkit-font-smoothing:antialiased;color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #ff6949;outline-offset:3px}body{background:#111214}
+.stage{min-height:100dvh;display:flex;justify-content:center;align-items:center;padding:42px 16px;position:relative;overflow:hidden}
+.stage:before{content:"";position:fixed;inset:0;background-image:radial-gradient(circle,#303234 27%,transparent 31%);background-size:33px 33px;opacity:.2;mask-image:linear-gradient(to bottom,transparent,#000);pointer-events:none}
+.brand-outside{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.28em;font-weight:700;color:#f9f9f9;white-space:nowrap}
+.brand-outside span{font-weight:400;color:#777;letter-spacing:.09em;padding-left:9px}
+.device{width:426px;max-width:100%;height:min(878px,calc(100dvh - 80px));min-height:620px;position:relative;border-radius:55px;padding:9px;background:linear-gradient(140deg,#5f6165 0%,#171719 13%,#050607 55%,#62656a 92%,#131416);box-shadow:0 26px 92px #0009,0 0 0 2px #74777a,inset 0 0 0 2px #000;z-index:1}
+.device:before{content:"";position:absolute;right:-5px;top:186px;width:4px;height:74px;border-radius:0 4px 4px 0;background:#626469}.device:after{content:"";position:absolute;left:-4px;top:168px;width:3px;height:65px;border-radius:4px 0 0 4px;background:#4b4e52}
+.screen{height:100%;position:relative;overflow:hidden;border-radius:47px;background:var(--bg);display:flex;flex-direction:column}
+.island{position:absolute;z-index:4;top:13px;left:50%;transform:translateX(-50%);width:100px;height:27px;border-radius:99px;background:#101114}
+.statusbar{height:64px;flex-shrink:0;display:flex;align-items:flex-start;padding:20px 32px 0;justify-content:space-between;font-size:14px;font-weight:650;letter-spacing:.01em;position:relative;z-index:2}.status-icons{display:flex;gap:6px;align-items:center}.status-icons svg{height:13px;width:17px}
+#view{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:20px 25px 30px}#view::-webkit-scrollbar{display:none}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin:10px 0 22px}.page-head h1{font:normal 36px/1 var(--serif);letter-spacing:-.065em;margin:0}.page-head p{color:#8f9092;font-size:13px;margin:9px 0 0}.ghost-circle{width:38px;height:38px;border:1px solid #e2e2e3;background:var(--card);border-radius:50%;display:grid;place-items:center;color:var(--ink);flex-shrink:0}
+.eyebrow{font-size:10px;font-weight:700;color:#9a9b9c;letter-spacing:.16em;text-transform:uppercase}.row{display:flex;justify-content:space-between;align-items:center;gap:12px}.small{font-size:12px;color:#999}.strong{font-weight:650;color:#222}.section-title{font-size:13px;font-weight:700;margin:0}.section-head{display:flex;align-items:center;justify-content:space-between;margin:26px 0 13px}.section-head button{border:0;background:transparent;font-size:12px;color:#696b70;padding:5px}
+.demo-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid #dededf;border-radius:100px;padding:6px 9px;font-size:10px;color:#818385;background:#fff;font-weight:650;letter-spacing:.04em}.demo-chip i{display:block;width:5px;height:5px;border-radius:50%;background:var(--orange)}
+.orbit-wrap{height:222px;display:flex;align-items:center;justify-content:center;position:relative;margin:8px 0 8px}.orbit{position:relative;width:218px;height:218px}.orbit .dot{position:absolute;background:#d2d2d4;border-radius:50%;transform:translate(-50%,-50%)}.orbit .dot.active{background:#242527}.orbit .dot.warm{background:var(--orange)}.orbit-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.orbit-center strong{font-weight:500;font-size:33px;letter-spacing:-.07em}.orbit-center span{font-size:10px;color:#97999a;letter-spacing:.07em;text-transform:uppercase}
+.time-hero{margin:16px 0 7px}.digital{display:flex;gap:5px;align-items:center;min-height:77px}.digit{display:grid;grid-template-columns:repeat(5,8px);grid-template-rows:repeat(7,8px);gap:3px}.pixel{width:7px;height:7px;border-radius:50%;background:transparent}.pixel.on{background:#27282b}.digit-colon{width:10px;display:flex;flex-direction:column;justify-content:center;gap:13px;align-items:center;height:65px}.digit-colon i{width:7px;height:7px;border-radius:50%;background:#27282b}.time-hero .under{display:flex;justify-content:space-between;align-items:center;margin:10px 0 20px}.time-hero .under .label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#999}.time-hero .under .amount{font-size:12px;color:#8e9091}
+.surface{background:var(--card);border-radius:24px;border:1px solid #eeeeef;padding:19px 19px 20px;margin-bottom:13px}.surface.soft{background:#f9f9f9}.segmented{background:#292a2d;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:4px;border-radius:100px;margin:15px 0 21px}.segmented button{border:none;border-radius:100px;background:transparent;color:#c3c4c5;padding:9px 0;font-size:12px}.segmented button.selected{background:#fff;color:#242527;font-weight:650}
+.metric-top{display:flex;align-items:center;justify-content:space-between}.metric-top strong{font-size:14px}.metric-top span{font-size:11px;color:#aaa}
+.activity-bars{height:86px;display:flex;align-items:end;justify-content:space-between;gap:9px;padding:0 2px}.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}.bar{width:100%;max-width:25px;border-radius:4px 4px 2px 2px;background:#dcdcdf;min-height:5px}.bar.accent{background:#252629}.bar.warn{background:var(--orange)}.bar-wrap em{font-size:9px;font-style:normal;color:#b2b3b5}
+.legend{display:flex;align-items:center;gap:12px;font-size:10px;color:#949598;margin-top:14px}.legend b{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;background:#dcdcdf}.legend b.dark{background:#27282b}.legend b.warn{background:var(--orange)}
+.app-list{display:flex;flex-direction:column;gap:15px}.app-row{display:flex;align-items:center;gap:12px}.app-icon{width:40px;height:40px;display:grid;place-items:center;flex-shrink:0;border-radius:13px;background:#ededee;color:#27282a;font-size:19px;font-weight:700}.app-icon.discord{font-size:12px;font-weight:850;letter-spacing:-.07em}.app-icon.youtube{font-size:12px;font-weight:850}.app-name{font-size:13px;font-weight:650}.app-time{font-size:11px;color:#888}.app-meta{flex:1;min-width:0}.track{height:4px;border-radius:30px;background:#eeeeef;margin-top:7px;overflow:hidden}.track>div{height:100%;border-radius:30px;background:#2e3033}.track>div.over{background:var(--orange)}
+.mini-tag{font-size:10px;color:var(--orange);font-weight:650}.hobby-card{background:#252629;color:white;border-radius:23px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}.hobby-card .dot-deco{position:absolute;right:-45px;top:-40px;width:145px;height:145px;border-radius:50%;background:radial-gradient(circle,#686b6f 1.9px,transparent 2.5px) 0 0/12px 12px;opacity:.6;mask-image:radial-gradient(circle,transparent 23%,black 25%)}.hobby-card .label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#a6a8ab}.hobby-card h3{font:normal 29px/1.12 var(--serif);letter-spacing:-.05em;margin:11px 0 6px;position:relative}.hobby-card p{font-size:12px;line-height:1.55;color:#bcbfc1;margin:0 0 17px;max-width:190px}.hobby-card button{border:0;border-radius:100px;background:#fff;color:#292a2c;padding:11px 17px;font-size:12px;font-weight:700}
+.bottom-nav{height:82px;flex-shrink:0;border-top:1px solid #e9e9e9;background:rgba(251,251,251,.97);display:grid;grid-template-columns:repeat(5,1fr);padding:8px 10px 13px;position:relative;z-index:3}.tab{border:0;background:transparent;color:#a3a5a6;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:6px;padding:2px;font-size:9px;font-weight:550}.tab.active{color:#212326;font-weight:750}.tab svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7}.tab.active .nav-dot{width:5px;height:5px;background:#242527;border-radius:50%;margin-top:-2px}
+.list-card{border:1px solid #eaeaec;background:#fff;border-radius:19px;padding:17px;margin-bottom:10px}.list-card h3{font-size:14px;margin:0 0 5px}.list-card p{font-size:12px;color:#929497;margin:0;line-height:1.5}.list-card .rule-top{display:flex;gap:10px;align-items:center;justify-content:space-between}.rule-top .app-icon{width:36px;height:36px}.range-row{display:flex;align-items:center;gap:13px;margin-top:20px}.range-row input{flex:1;accent-color:#292a2b}.range-row output{font-size:12px;min-width:48px;text-align:right;font-weight:700}
+.btn{border:0;border-radius:100px;background:#292a2d;color:#fff;padding:12px 16px;font-size:12px;font-weight:700}.btn.light{background:#eeeef0;color:#292a2d}.btn.outline{background:transparent;border:1px solid #dedee0;color:#292a2d}.btn.block{width:100%}.button-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}.button-row .btn{flex:1}
+.field{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#7c7e80;font-weight:650;margin:12px 0}.field input,.field select,.field textarea{width:100%;border:1px solid #e4e4e6;background:#fff;border-radius:12px;padding:13px;color:#252629;font-size:13px;outline-offset:2px}.field textarea{min-height:105px;resize:vertical;line-height:1.5}
+.empty-note{font-size:12px;color:#999;line-height:1.6;margin:14px 0}.note{font-size:11px;color:#999;line-height:1.65;margin:11px 0}.setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid #e9e9ea}.setting-row:last-child{border:0}.setting-row b{font-size:13px}.setting-row small{display:block;color:#989a9b;font-size:11px;font-weight:400;line-height:1.5;margin-top:5px}.switch{border:0;width:43px;height:25px;border-radius:30px;background:#d9dadd;padding:3px;display:flex;align-items:center;flex-shrink:0}.switch i{width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #0002;transition:transform .2s}.switch.on{background:#252629}.switch.on i{transform:translateX(18px)}
+.board-preview{background:#151617;border-radius:14px;padding:20px 16px 18px;margin:12px 0 18px;box-shadow:inset 0 2px 8px #000b}.board-tiles{display:grid;grid-template-columns:repeat(22,1fr);gap:2px}.flap{aspect-ratio:.7;border-radius:1px;background:linear-gradient(#333537 0 49%,#0c0d0d 49% 52%,#252628 52%);color:#efefea;display:grid;place-items:center;font-family:monospace;font-size:8px;line-height:1}.board-foot{font-size:9px;letter-spacing:.13em;text-align:center;color:#a2a4a7;margin-top:12px}.divider{height:1px;background:#e9e9e9;margin:18px 0}.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.choice{border:1px solid #e7e7e8;background:white;border-radius:14px;padding:15px;text-align:left}.choice.selected{border-color:#292a2b;background:#f1f1f1}.choice b{display:block;font-size:13px}.choice small{font-size:11px;color:#909295;line-height:1.5;display:block;margin-top:5px}
+.pill{display:inline-flex;padding:7px 10px;border-radius:100px;background:#f2f2f2;color:#75777a;font-size:11px}.warning{color:#eb4829}.prompt{position:absolute;inset:0;z-index:7;background:#17171775;display:flex;align-items:flex-end;padding:14px}.prompt-sheet{background:#fff;border-radius:29px;width:100%;padding:25px;box-shadow:0 24px 60px #0004}.prompt-sheet .handle{width:38px;height:4px;border-radius:3px;background:#ddd;margin:-10px auto 20px}.prompt-sheet h2{font:normal 29px/1.12 var(--serif);letter-spacing:-.045em;margin:10px 0}.prompt-sheet p{color:#838589;font-size:13px;line-height:1.6;margin:10px 0 24px}.prompt-sheet .btn{padding:14px 18px}.toast{position:absolute;bottom:93px;left:24px;right:24px;border-radius:15px;background:#292a2d;color:#fff;padding:15px 18px;font-size:12px;line-height:1.55;z-index:6;box-shadow:0 10px 35px #0004;animation:appear .25s ease}@keyframes appear{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:520px){body{background:var(--bg)}.stage{padding:0;display:block;min-height:100dvh}.stage:before,.brand-outside{display:none}.device{width:100%;max-width:none;height:100dvh;min-height:0;border:none;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}.device:before,.device:after{display:none}.screen{border-radius:0}#view{padding:18px 23px 25px}.statusbar{padding-top:17px;height:60px}.island{top:10px}.bottom-nav{height:calc(74px + env(safe-area-inset-bottom));padding-bottom:calc(10px + env(safe-area-inset-bottom))}.orbit-wrap{height:208px}.orbit{transform:scale(.96)}}@media(prefers-reduced-motion:reduce){.toast,.switch i{animation:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="brand-outside">PAUSE <span>LESS SCREEN. MORE LIFE.</span></div>
+<div class="device"><div class="screen">
+<div class="island" aria-hidden="true"></div>
+<div class="statusbar" aria-hidden="true"><span id="clock">9:41</span><div class="status-icons"><svg viewBox="0 0 18 14"><path d="M1 13V9h3v4M6 13V6h3v7M11 13V3h3v10" fill="currentColor" stroke="none"/></svg><svg viewBox="0 0 18 14"><path d="M1 4c5-4 11-4 16 0M4 8c3-3 7-3 10 0M7 11c1-1 3-1 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><svg viewBox="0 0 21 12"><rect x="1" y="1" width="17" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="3" width="12" height="6" rx="1" fill="currentColor"/><rect x="19" y="4" width="2" height="4" rx="1" fill="currentColor"/></svg></div></div>
+<main id="view" aria-live="polite"></main>
+<nav class="bottom-nav" aria-label="Main navigation" id="tabs"></nav>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+</div></div>
+</div>
+<script>
+(function(){
+'use strict';
+const STORE='pause.phone.prototype.v1';
+const DEFAULT={
+ tab:'today',period:'Day',demo:true,enabled:true,motion:true,showPrompt:false,toast:'',
+ usage:{Discord:40,YouTube:22,Instagram:14},
+ rules:[{app:'Discord',limit:30,on:true},{app:'YouTube',limit:45,on:true},{app:'Instagram',limit:30,on:true}],
+ hobbies:[{id:1,name:'Reading',time:'8:00 PM',days:'Weekdays'},{id:2,name:'Sketching',time:'11:00 AM',days:'Weekends'}],
+ picked:1,board:'TIME FOR A BREAK\\nPICK UP THAT BOOK',snoozed:false,finished:false
+};
+function load(){try{const raw=JSON.parse(localStorage.getItem(STORE)||'null');if(raw&&typeof raw==='object')return Object.assign({},JSON.parse(JSON.stringify(DEFAULT)),raw,{tab:'today',showPrompt:false,toast:''});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT))}
+let s=load();
+const root=document.getElementById('view'), nav=document.getElementById('tabs');
+function save(){try{const data=Object.assign({},s,{showPrompt:false,toast:'',tab:'today'});localStorage.setItem(STORE,JSON.stringify(data));}catch(e){}}
+function esc(x){return String(x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(n){const m=Math.max(0,Math.round(Number(n)||0));return m>=60?Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m':m+' min'}
+function num(n){return Math.max(0,Math.round(Number(n)||0))}
+function sum(){return Object.values(s.usage).reduce((a,b)=>a+num(b),0)}
+function chosen(){return s.hobbies.find(h=>h.id===s.picked)||s.hobbies[0]||null}
+function activeRule(){return s.rules.find(r=>r.on&&num(s.usage[r.app])>=num(r.limit))}
+function icon(name){const common='viewBox="0 0 24 24" aria-hidden="true"';const paths={
+ today:'<circle cx="12" cy="12" r="9"/><path d="M12 5v7l4 3"/>',
+ rules:'<path d="M4 7h16M4 17h16M9 4v6M16 14v6"/><circle cx="9" cy="7" r="2" fill="#fff"/><circle cx="16" cy="17" r="2" fill="#fff"/>',
+ hobbies:'<path d="M12 21c-5-4-8-8-8-12a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 4-3 8-8 12z"/>',
+ board:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v14M13 5v14M3 12h18"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>',
+ more:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>'
+};return '<svg '+common+'>'+paths[name]+'</svg>'}
+const GLYPHS={
+'0':['01110','10001','10011','10101','11001','10001','01110'],
+'1':['00100','01100','00100','00100','00100','00100','01110'],
+'2':['01110','10001','00001','00010','00100','01000','11111'],
+'3':['11110','00001','00001','01110','00001','00001','11110'],
+'4':['00010','00110','01010','10010','11111','00010','00010'],
+'5':['11111','10000','10000','11110','00001','00001','11110'],
+'6':['01111','10000','10000','11110','10001','10001','01110'],
+'7':['11111','00001','00010','00100','01000','01000','01000'],
+'8':['01110','10001','10001','01110','10001','10001','01110'],
+'9':['01110','10001','10001','01111','00001','00001','11110']};
+function digit(d){if(d===':')return '<div class="digit-colon" aria-hidden="true"><i></i><i></i></div>';let m=GLYPHS[d]||GLYPHS['0'];return '<div class="digit" aria-hidden="true">'+m.join('').split('').map(x=>'<i class="pixel'+(x==='1'?' on':'')+'"></i>').join('')+'</div>'}
+function clockDigits(min){let t=Math.floor(num(min)/60)+':'+String(num(min)%60).padStart(2,'0');return '<div class="digital" role="img" aria-label="'+esc(fmt(min))+'">'+t.split('').map(digit).join('')+'</div>'}
+function orbit(){let used=sum();let ratio=Math.min(1,used/120);let html='<div class="orbit" role="img" aria-label="'+Math.round(used/120*100)+' percent of the example two-hour daily reference"><div class="orbit-center"><strong>'+Math.round(used/120*100)+'%</strong><span>of 2h reference</span></div>';[44,62,80,98].forEach((r,k)=>{const N=42+k*10;for(let i=0;i<N;i++){const angle=(i/N)*Math.PI*2-Math.PI/2;const x=109+Math.cos(angle)*r,y=109+Math.sin(angle)*r;let active=(i/N)<ratio;html+='<i class="dot'+(active&&k===1?' active':'')+(active&&k===1&&i>=Math.floor(N*.75)?' warm':'')+'" style="left:'+x+'px;top:'+y+'px;width:'+(k===1?'5':'3')+'px;height:'+(k===1?'5':'3')+'px"></i>'}});return html+'</div>'}
+function bars(){let data=s.period==='Day'?[8,12,28,49,36,72,44,30,55,69,37,46]:s.period==='Week'?[30,53,42,66,34,78,46]:[44,34,68,61,87,74,57,64];return '<div class="activity-bars" aria-label="Example usage distribution">'+data.map((v,i)=>'<div class="bar-wrap"><div class="bar'+(i===data.length-3?' warn':i%3===2?' accent':'')+'" style="height:'+v+'px"></div><em>'+(s.period==='Week'?['M','T','W','T','F','S','S'][i]:s.period==='Month'?'W'+(i+1):i%3===0?String(i+9):'')+'</em></div>').join('')+'</div>'}
+function appIcon(app){return '<span class="app-icon '+app.toLowerCase()+'">'+(app==='Discord'?'Di':app==='Instagram'?'◎':app==='YouTube'?'YT':'◉')+'</span>'}
+function head(title,sub,settings){return '<header class="page-head"><div><h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p></div><button class="ghost-circle" data-go="'+(settings||'settings')+'" aria-label="Open settings">'+icon('settings')+'</button></header>'}
+function today(){
+const hobby=chosen(),r=activeRule();
+return head('Today.','A little space for what matters.')+
+'<div class="row"><span class="eyebrow">Your overview</span><span class="demo-chip"><i></i> DEMO ACTIVITY</span></div>'+
+'<div class="orbit-wrap">'+orbit()+'</div>'+
+'<div class="time-hero">'+clockDigits(sum())+'<div class="under"><span class="label">Time in selected apps</span><span class="amount">Today · Example data</span></div></div>'+
+'<section class="surface"><div class="metric-top"><strong>Activity</strong><span>Example pattern</span></div><div class="segmented">'+['Day','Week','Month'].map(p=>'<button class="'+(s.period===p?'selected':'')+'" data-period="'+p+'" aria-pressed="'+(s.period===p)+'">'+p+'</button>').join('')+'</div>'+bars()+'<div class="legend"><span><b class="dark"></b>Usage</span><span><b class="warn"></b>Over limit</span><span><b></b>Other</span></div></section>'+
+'<div class="section-head"><h2 class="section-title">Selected apps</h2><button data-go="rules">Manage limits →</button></div>'+
+'<section class="surface"><div class="app-list">'+s.rules.map(rule=>{const used=num(s.usage[rule.app]);return '<div class="app-row">'+appIcon(rule.app)+'<div class="app-meta"><div class="row"><span class="app-name">'+esc(rule.app)+'</span><span class="app-time">'+fmt(used)+' / '+fmt(rule.limit)+'</span></div><div class="track"><div class="'+(used>rule.limit?'over':'')+'" style="width:'+Math.min(100,Math.round(used/Math.max(1,rule.limit)*100))+'%"></div></div></div></div>'}).join('')+'</div></section>'+
+'<div class="section-head"><h2 class="section-title">Make time for</h2><button data-go="hobbies">Your hobbies →</button></div>'+
+'<section class="hobby-card"><div class="dot-deco"></div><div class="label">A moment away</div><h3>'+esc(hobby?hobby.name:'Something offline')+'</h3><p>'+(hobby?'You picked '+esc(hobby.time)+' · '+esc(hobby.days.toLowerCase())+'.':'Choose something you want more time for.')+'</p><button data-act="'+(hobby?'start':'hobbies')+'">'+(hobby?'Start '+esc(hobby.name.toLowerCase()):'Add a hobby')+' ↗</button></section>'+
+'<div class="row"><button class="btn outline" data-act="addten">+ 10 min demo time</button><button class="btn" data-act="prompt">'+(r?'View your check-in':'Preview a check-in')+'</button></div>'+
+'<p class="note">This website cannot see iPhone Screen Time or usage in other apps. Tap +10 min to test how a check-in works.</p>';
+}
+function rules(){
+return head('Limits.','A heads-up, not a hard stop.')+
+'<div class="row"><span class="eyebrow">Daily rules</span><span class="pill">Browser demo</span></div>'+
+'<p class="note" style="margin:14px 0 22px">Adjust the limits below. Usage numbers are simulated; native Screen Time monitoring stays in the Swift app.</p>'+
+s.rules.map(r=>'<section class="list-card"><div class="rule-top">'+appIcon(r.app)+'<div style="flex:1"><h3>'+esc(r.app)+'</h3><p>Today: '+fmt(s.usage[r.app]||0)+(num(s.usage[r.app])>r.limit?' · Over limit':'')+'</p></div><button class="switch '+(r.on?'on':'')+'" data-toggle="'+esc(r.app)+'" aria-pressed="'+r.on+'" aria-label="Toggle '+esc(r.app)+' reminder"><i></i></button></div><div class="range-row"><label class="small" for="limit-'+esc(r.app)+'">Daily limit</label><input id="limit-'+esc(r.app)+'" type="range" min="5" max="180" step="5" value="'+r.limit+'" data-limit="'+esc(r.app)+'" aria-label="'+esc(r.app)+' daily minutes"><output>'+r.limit+' min</output></div></section>').join('')+
+'<button class="btn block" data-act="prompt">Preview reminder →</button>'+
+'<div class="section-head"><h2 class="section-title">How this works</h2></div>'+
+'<section class="surface soft"><p style="font-size:13px;margin:0 0 9px">When you reach a limit, PAUSE gives you a choice.</p><p class="note" style="margin:0">Take a break, add 15 minutes, or dismiss it. Extending time never changes your saved daily limit.</p></section>'+
+'<button class="btn outline block" data-act="addten">Simulate another 10 minutes</button>';
+}
+function hobbies(){
+return head('Your time.','Less scrolling. More of this.')+
+'<span class="eyebrow">Things you want to make room for</span>'+
+'<div style="margin:17px 0">'+s.hobbies.map(h=>'<section class="list-card"><div class="row"><div><h3>'+esc(h.name)+'</h3><p>'+esc(h.days)+' · '+esc(h.time)+'</p></div><button class="btn '+(s.picked===h.id?'':'outline')+'" data-pick="'+h.id+'">'+(s.picked===h.id?'Selected':'Choose')+'</button></div><div class="button-row"><button class="btn light" data-act="start" data-hobby="'+h.id+'">Start now</button><button class="btn outline" data-remove-hobby="'+h.id+'">Remove</button></div></section>').join('')+'</div>'+
+'<div class="section-head"><h2 class="section-title">Add an activity</h2></div>'+
+'<form id="add-hobby" class="surface"><label class="field">Activity name<input name="name" maxlength="32" placeholder="e.g. Reading, guitar, running" required></label><label class="field">Preferred time<input name="time" type="time" value="20:00" required></label><label class="field">When<select name="days"><option>Every day</option><option>Weekdays</option><option>Weekends</option><option>Whenever I can</option></select></label><button class="btn block" type="submit">Save activity</button></form>'+
+'<p class="note">These choices help PAUSE suggest something you actually want to do. They are preferences, not appointments.</p>';
+}
+function layoutBoard(message){const rows=String(message||'').toUpperCase().split('\n').flatMap(line=>line.length?line.match(/.{1,22}/g):['']).slice(0,6);const result=Array.from({length:6},()=>Array(22).fill(' '));rows.forEach((row,i)=>{const top=Math.floor((6-rows.length)/2)+i;const left=Math.floor((22-row.length)/2);Array.from(row).forEach((c,j)=>{if(top>=0&&top<6&&left+j<22)result[top][left+j]=c})});return result.flat().map(c=>'<span class="flap">'+(c===' '?'&nbsp;':esc(c))+'</span>').join('')}
+function board(){return head('The board.','A little reminder, on display.')+
+'<span class="eyebrow">Split-flap preview · 6 × 22</span><div class="board-preview"><div class="board-tiles" id="board-tiles">'+layoutBoard(s.board)+'</div><div class="board-foot">P A U S E</div></div>'+
+'<form id="board-form"><label class="field">Message<textarea name="board" maxlength="132" spellcheck="false" placeholder="Your board message">'+esc(s.board)+'</textarea></label><button class="btn block" type="submit">Update preview</button></form>'+
+'<div class="section-head"><h2 class="section-title">Quick messages</h2></div>'+
+'<div class="choice-grid"><button class="choice" data-message="TIME FOR A BREAK\nPICK UP THAT BOOK"><b>Reading time</b><small>A reminder to return to your hobby</small></button><button class="choice" data-message="YOUR LIMIT IS UP\nSTEP AWAY FOR A WHILE"><b>Limit reached</b><small>A simple check-in</small></button><button class="choice" data-message="ONE SMALL PAUSE\nCAN CHANGE YOUR DAY"><b>Take a pause</b><small>A quieter moment</small></button><button class="choice" data-message="LESS SCREEN\nMORE LIFE"><b>PAUSE</b><small>Our simplest message</small></button></div>'+
+'<p class="note">This is a browser-only preview. It does not send messages to your physical board or Mac controller.</p>'}
+function settings(){return head('Settings.','Only what you choose.')+
+'<span class="eyebrow">Experience</span><section class="surface"><div class="setting-row"><div><b>Demo check-ins</b><small>Enable the preview reminders</small></div><button class="switch '+(s.enabled?'on':'')+'" data-setting="enabled" aria-pressed="'+s.enabled+'"><i></i></button></div><div class="setting-row"><div><b>Motion</b><small>Keep interactions gentle</small></div><button class="switch '+(s.motion?'on':'')+'" data-setting="motion" aria-pressed="'+s.motion+'"><i></i></button></div></section>'+
+'<div class="section-head"><h2 class="section-title">Privacy</h2></div><section class="surface"><p style="font-size:13px;line-height:1.65;margin:0">This prototype only stores preferences and simulated data in this browser. It does not read your Screen Time, other apps, messages, or location.</p><div class="divider"></div><button class="btn outline block" data-act="reset">Reset demo data</button></section>'+
+'<div class="section-head"><h2 class="section-title">About PAUSE</h2></div><section class="surface"><p style="font:normal 27px/1.2 var(--serif);letter-spacing:-.04em;margin:0 0 10px">Less screen.<br>More life.</p><p class="note">A concept that helps people notice when they have spent more time online than they intended, then suggests the offline activities they care about.</p><p class="note">Web prototype v0.1 · Native monitoring is available only in the separately installed Swift app after Apple authorization.</p></section>'}
+function navHtml(){const labels=[['today','Today'],['rules','Limits'],['hobbies','Hobbies'],['board','Board'],['settings','Settings']];return labels.map(t=>'<button class="tab '+(s.tab===t[0]?'active':'')+'" data-go="'+t[0]+'" aria-current="'+(s.tab===t[0]?'page':'false')+'">'+icon(t[0])+'<span>'+t[1]+'</span></button>').join('')}
+function notify(msg){s.toast=msg;document.getElementById('toast-root').innerHTML='<div class="toast" role="status">'+esc(msg)+'</div>';clearTimeout(notify.timer);notify.timer=setTimeout(()=>{s.toast='';document.getElementById('toast-root').innerHTML=''},3600)}
+function modal(){const place=document.getElementById('modal-root');if(!s.showPrompt){place.innerHTML='';return}const rule=activeRule()||s.rules.find(r=>r.on)||s.rules[0],h=chosen(),used=num(s.usage[rule.app]||0);place.innerHTML='<div class="prompt" role="dialog" aria-modal="true" aria-label="Screen-time check-in"><div class="prompt-sheet"><div class="handle"></div><div class="row"><span class="eyebrow">A PAUSE check-in</span><button class="ghost-circle" data-act="close" aria-label="Close check-in">×</button></div><h2>'+esc(rule.app)+' has reached '+fmt(used)+'.</h2><p>Your daily limit is '+fmt(rule.limit)+'.'+(h?' You wanted to make room for '+esc(h.name.toLowerCase())+'. Want to switch?':' Want to step away for a while?')+'</p><button class="btn block" data-act="start">'+(h?'Start '+esc(h.name.toLowerCase()):'Take a break')+' →</button><div class="button-row"><button class="btn light" data-act="snooze">15 more minutes</button><button class="btn outline" data-act="dismiss">Not now</button></div></div></div>'}
+function render(preserve){nav.innerHTML=navHtml();root.innerHTML=s.tab==='today'?today():s.tab==='rules'?rules():s.tab==='hobbies'?hobbies():s.tab==='board'?board():settings();if(!preserve)root.scrollTop=0;modal();save()}
+function setTab(tab){if(!['today','rules','hobbies','board','settings'].includes(tab))return;s.tab=tab;s.showPrompt=false;render()}
+document.addEventListener('click',function(e){const b=e.target.closest('button');if(!b)return;
+if(b.dataset.go){setTab(b.dataset.go);return}
+if(b.dataset.period){s.period=b.dataset.period;render(true);return}
+if(b.dataset.toggle){const r=s.rules.find(x=>x.app===b.dataset.toggle);if(r)r.on=!r.on;render(true);return}
+if(b.dataset.setting){s[b.dataset.setting]=!s[b.dataset.setting];render(true);return}
+if(b.dataset.pick){s.picked=Number(b.dataset.pick);render(true);notify('Preference saved for the browser demo.');return}
+if(b.dataset.removeHobby){const id=Number(b.dataset.removeHobby);s.hobbies=s.hobbies.filter(x=>x.id!==id);if(s.picked===id)s.picked=s.hobbies[0]?.id||null;render(true);return}
+if(b.dataset.message){s.board=b.dataset.message;render(true);notify('Board preview updated.');return}
+if(b.dataset.act){const act=b.dataset.act;if(act==='hobbies'){setTab('hobbies');return}if(act==='addten'){s.usage.Discord=num(s.usage.Discord)+10;render(true);if(s.enabled&&activeRule()&&!s.snoozed){s.showPrompt=true;modal()}return}
+if(act==='prompt'){s.showPrompt=true;modal();return}
+if(act==='start'){if(b.dataset.hobby)s.picked=Number(b.dataset.hobby);s.showPrompt=false;s.finished=true;render(true);notify('Enjoy your time away. PAUSE will stay quiet.');return}
+if(act==='snooze'){s.snoozed=true;s.showPrompt=false;render(true);notify('Okay. No more demo check-ins this session.');return}
+if(act==='dismiss'||act==='close'){s.showPrompt=false;render(true);if(act==='dismiss')notify('Dismissed. You can keep going.');return}
+if(act==='reset'){if(window.confirm('Reset the demo limits, hobbies, and usage?')){try{localStorage.removeItem(STORE)}catch(e){}s=JSON.parse(JSON.stringify(DEFAULT));render();notify('Demo reset.')}return}}});
+document.addEventListener('input',function(e){const item=e.target;if(item.dataset.limit){const o=item.closest('.range-row').querySelector('output');if(o)o.textContent=item.value+' min'}});
+document.addEventListener('change',function(e){const item=e.target;if(item.dataset.limit){const r=s.rules.find(x=>x.app===item.dataset.limit);if(r)r.limit=Number(item.value);save();notify('Daily limit updated.') }});
+document.addEventListener('submit',function(e){if(e.target.id==='add-hobby'){e.preventDefault();const f=new FormData(e.target),name=String(f.get('name')||'').trim().slice(0,32);if(!name)return;const raw=String(f.get('time')||'20:00').split(':'),hh=Number(raw[0]),mm=String(raw[1]||'00').padStart(2,'0');const time=(hh%12||12)+':'+mm+' '+(hh>=12?'PM':'AM');const id=Date.now();s.hobbies.push({id,name,time,days:String(f.get('days')||'Every day')});s.picked=id;render(true);notify('Activity saved.');return}
+if(e.target.id==='board-form'){e.preventDefault();const m=new FormData(e.target);s.board=String(m.get('board')||'').slice(0,132);render(true);notify('Board preview updated.');return}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&s.showPrompt){s.showPrompt=false;modal()}});
+document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:false}).replace(/^24:/,'0:');
+render();
+})();
+</script>
+</body>
+</html>
