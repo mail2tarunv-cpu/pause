@@ -39,6 +39,8 @@
 .pill{display:inline-flex;padding:7px 10px;border-radius:100px;background:#f2f2f2;color:#75777a;font-size:11px}.warning{color:#eb4829}.prompt{position:absolute;inset:0;z-index:7;background:#17171775;display:flex;align-items:flex-end;padding:14px}.prompt-sheet{background:#fff;border-radius:29px;width:100%;padding:25px;box-shadow:0 24px 60px #0004}.prompt-sheet .handle{width:38px;height:4px;border-radius:3px;background:#ddd;margin:-10px auto 20px}.prompt-sheet h2{font:normal 29px/1.12 var(--serif);letter-spacing:-.045em;margin:10px 0}.prompt-sheet p{color:#838589;font-size:13px;line-height:1.6;margin:10px 0 24px}.prompt-sheet .btn{padding:14px 18px}.toast{position:absolute;bottom:93px;left:24px;right:24px;border-radius:15px;background:#292a2d;color:#fff;padding:15px 18px;font-size:12px;line-height:1.55;z-index:6;box-shadow:0 10px 35px #0004;animation:appear .25s ease}@keyframes appear{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:520px){body{background:var(--bg)}.stage{padding:0;display:block;min-height:100dvh}.stage:before,.brand-outside{display:none}.device{width:100%;max-width:none;height:100dvh;min-height:0;border:none;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}.device:before,.device:after{display:none}.screen{border-radius:0}#view{padding:18px 23px 25px}.statusbar{padding-top:17px;height:60px}.island{top:10px}.bottom-nav{height:calc(74px + env(safe-area-inset-bottom));padding-bottom:calc(10px + env(safe-area-inset-bottom))}.orbit-wrap{height:208px}.orbit{transform:scale(.96)}}@media(prefers-reduced-motion:reduce){.toast,.switch i{animation:none;transition:none}}
 </style>
+<link rel="stylesheet" href="./v2.css">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
 </head>
 <body>
 <div class="stage">
@@ -65,6 +67,10 @@ const DEFAULT={
 };
 function load(){try{const raw=JSON.parse(localStorage.getItem(STORE)||'null');if(raw&&typeof raw==='object')return Object.assign({},JSON.parse(JSON.stringify(DEFAULT)),raw,{tab:'today',showPrompt:false,toast:''});}catch(e){}return JSON.parse(JSON.stringify(DEFAULT))}
 let s=load();
+if(typeof s.onboarded!=='boolean')s.onboarded=false;
+if(typeof s.demoTracking!=='boolean')s.demoTracking=true;
+if(!Number.isFinite(s.previewSeconds))s.previewSeconds=0;
+let onboardingStep=0;let editingHobbyId=null;let previewLast=Date.now();
 const root=document.getElementById('view'), nav=document.getElementById('tabs');
 function save(){try{const data=Object.assign({},s,{showPrompt:false,toast:'',tab:'today'});localStorage.setItem(STORE,JSON.stringify(data));}catch(e){}}
 function esc(x){return String(x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -73,14 +79,8 @@ function num(n){return Math.max(0,Math.round(Number(n)||0))}
 function sum(){return Object.values(s.usage).reduce((a,b)=>a+num(b),0)}
 function chosen(){return s.hobbies.find(h=>h.id===s.picked)||s.hobbies[0]||null}
 function activeRule(){return s.rules.find(r=>r.on&&num(s.usage[r.app])>=num(r.limit))}
-function icon(name){const common='viewBox="0 0 24 24" aria-hidden="true"';const paths={
- today:'<circle cx="12" cy="12" r="9"/><path d="M12 5v7l4 3"/>',
- rules:'<path d="M4 7h16M4 17h16M9 4v6M16 14v6"/><circle cx="9" cy="7" r="2" fill="#fff"/><circle cx="16" cy="17" r="2" fill="#fff"/>',
- hobbies:'<path d="M12 21c-5-4-8-8-8-12a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 4-3 8-8 12z"/>',
- board:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v14M13 5v14M3 12h18"/>',
- settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>',
- more:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>'
-};return '<svg '+common+'>'+paths[name]+'</svg>'}
+function icon(name){const paths={today:'house',activity:'chart-no-axes-column',rules:'hourglass',hobbies:'heart-handshake',board:'grid-3x3',settings:'settings',more:'circle-help'};return '<i data-lucide="'+(paths[name]||name)+'" aria-hidden="true"></i>'}
+
 const GLYPHS={
 '0':['01110','10001','10011','10101','11001','10001','01110'],
 '1':['00100','01100','00100','00100','00100','00100','01110'],
@@ -96,40 +96,57 @@ function digit(d){if(d===':')return '<div class="digit-colon" aria-hidden="true"
 function clockDigits(min){let t=Math.floor(num(min)/60)+':'+String(num(min)%60).padStart(2,'0');return '<div class="digital" role="img" aria-label="'+esc(fmt(min))+'">'+t.split('').map(digit).join('')+'</div>'}
 function orbit(){let used=sum();let ratio=Math.min(1,used/120);let html='<div class="orbit" role="img" aria-label="'+Math.round(used/120*100)+' percent of the example two-hour daily reference"><div class="orbit-center"><strong>'+Math.round(used/120*100)+'%</strong><span>of 2h reference</span></div>';[44,62,80,98].forEach((r,k)=>{const N=42+k*10;for(let i=0;i<N;i++){const angle=(i/N)*Math.PI*2-Math.PI/2;const x=109+Math.cos(angle)*r,y=109+Math.sin(angle)*r;let active=(i/N)<ratio;html+='<i class="dot'+(active&&k===1?' active':'')+(active&&k===1&&i>=Math.floor(N*.75)?' warm':'')+'" style="left:'+x+'px;top:'+y+'px;width:'+(k===1?'5':'3')+'px;height:'+(k===1?'5':'3')+'px"></i>'}});return html+'</div>'}
 function bars(){let data=s.period==='Day'?[8,12,28,49,36,72,44,30,55,69,37,46]:s.period==='Week'?[30,53,42,66,34,78,46]:[44,34,68,61,87,74,57,64];return '<div class="activity-bars" aria-label="Example usage distribution">'+data.map((v,i)=>'<div class="bar-wrap"><div class="bar'+(i===data.length-3?' warn':i%3===2?' accent':'')+'" style="height:'+v+'px"></div><em>'+(s.period==='Week'?['M','T','W','T','F','S','S'][i]:s.period==='Month'?'W'+(i+1):i%3===0?String(i+9):'')+'</em></div>').join('')+'</div>'}
-function appIcon(app){return '<span class="app-icon '+app.toLowerCase()+'">'+(app==='Discord'?'Di':app==='Instagram'?'◎':app==='YouTube'?'YT':'◉')+'</span>'}
+function appIcon(app){const names={Discord:'message-circle',Instagram:'instagram',YouTube:'youtube'};return '<span class="app-icon '+app.toLowerCase()+'"><i data-lucide="'+(names[app]||'app-window')+'"></i></span>'}
+
 function head(title,sub,settings){return '<header class="page-head"><div><h1>'+esc(title)+'</h1><p>'+esc(sub)+'</p></div><button class="ghost-circle" data-go="'+(settings||'settings')+'" aria-label="Open settings">'+icon('settings')+'</button></header>'}
 function today(){
-const hobby=chosen(),r=activeRule();
-return head('Today.','A little space for what matters.')+
-'<div class="row"><span class="eyebrow">Your overview</span><span class="demo-chip"><i></i> DEMO ACTIVITY</span></div>'+
-'<div class="orbit-wrap">'+orbit()+'</div>'+
-'<div class="time-hero">'+clockDigits(sum())+'<div class="under"><span class="label">Time in selected apps</span><span class="amount">Today · Example data</span></div></div>'+
-'<section class="surface"><div class="metric-top"><strong>Activity</strong><span>Example pattern</span></div><div class="segmented">'+['Day','Week','Month'].map(p=>'<button class="'+(s.period===p?'selected':'')+'" data-period="'+p+'" aria-pressed="'+(s.period===p)+'">'+p+'</button>').join('')+'</div>'+bars()+'<div class="legend"><span><b class="dark"></b>Usage</span><span><b class="warn"></b>Over limit</span><span><b></b>Other</span></div></section>'+
-'<div class="section-head"><h2 class="section-title">Selected apps</h2><button data-go="rules">Manage limits →</button></div>'+
-'<section class="surface"><div class="app-list">'+s.rules.map(rule=>{const used=num(s.usage[rule.app]);return '<div class="app-row">'+appIcon(rule.app)+'<div class="app-meta"><div class="row"><span class="app-name">'+esc(rule.app)+'</span><span class="app-time">'+fmt(used)+' / '+fmt(rule.limit)+'</span></div><div class="track"><div class="'+(used>rule.limit?'over':'')+'" style="width:'+Math.min(100,Math.round(used/Math.max(1,rule.limit)*100))+'%"></div></div></div></div>'}).join('')+'</div></section>'+
-'<div class="section-head"><h2 class="section-title">Make time for</h2><button data-go="hobbies">Your hobbies →</button></div>'+
-'<section class="hobby-card"><div class="dot-deco"></div><div class="label">A moment away</div><h3>'+esc(hobby?hobby.name:'Something offline')+'</h3><p>'+(hobby?'You picked '+esc(hobby.time)+' · '+esc(hobby.days.toLowerCase())+'.':'Choose something you want more time for.')+'</p><button data-act="'+(hobby?'start':'hobbies')+'">'+(hobby?'Start '+esc(hobby.name.toLowerCase()):'Add a hobby')+' ↗</button></section>'+
-'<div class="row"><button class="btn outline" data-act="addten">+ 10 min demo time</button><button class="btn" data-act="prompt">'+(r?'View your check-in':'Preview a check-in')+'</button></div>'+
-'<p class="note">This website cannot see iPhone Screen Time or usage in other apps. Tap +10 min to test how a check-in works.</p>';
+const hobby=chosen(),r=activeRule(),todayDate=new Date(),day=todayDate.getDay();
+const week=['M','T','W','T','F','S','S'];const monday=(day+6)%7;
+const weekStrip='<div class="week-strip">'+week.map((label,i)=>{const dt=new Date(todayDate);dt.setDate(todayDate.getDate()+i-monday);const current=i===monday;return '<div class="day-cell '+(current?'today':'')+'"><span>'+label+'</span><span class="day-number">'+dt.getDate()+'</span></div>'}).join('')+'</div>';
+const d=s.rules.find(x=>x.app==='Discord')||s.rules[0],used=num(s.usage.Discord||0),over=used>d.limit;
+return head('Today','Your screen time and what you planned to do instead.')+weekStrip+
+'<div class="flow-intro"><div class="flow-label">YOUR DAILY CHECK-IN</div><h2>'+(over?'Discord is '+(used-d.limit)+' min over your limit.':'Keep your time for what matters.')+'</h2><p>'+(hobby?'You set '+esc(hobby.name.toLowerCase())+' for '+esc(hobby.time)+'.':'Set up a hobby to get useful suggestions.')+'</p></div>'+
+'<div class="activity-overview"><div class="mini-metric"><span>Selected apps</span><strong>'+fmt(sum())+'</strong><small>Sample activity today</small></div><div class="mini-metric"><span>Limits passed</span><strong>'+s.rules.filter(x=>x.on&&num(s.usage[x.app])>x.limit).length+'</strong><small>Based on your rules</small></div></div>'+
+'<div class="row" style="margin:0 0 14px"><span class="tracking-indicator '+(!s.demoTracking?'off':'')+'"><i></i>'+(s.demoTracking?'Preview session tracking on':'Preview session paused')+'</span><button data-go="activity" class="btn outline" style="padding:9px 12px">Activity →</button></div>'+
+'<section class="surface"><div class="metric-top"><strong>Screen time</strong><span>Sample activity</span></div><div class="segmented">'+['Day','Week','Month'].map(x=>'<button data-period="'+x+'" class="'+(s.period===x?'selected':'')+'">'+x+'</button>').join('')+'</div>'+bars()+'</section>'+
+'<div class="section-head"><h2 class="section-title">Daily limits</h2><button data-go="rules">Edit limits →</button></div>'+
+'<section class="surface"><div class="app-list">'+s.rules.map(x=>{let t=num(s.usage[x.app]||0);return '<div class="app-row">'+appIcon(x.app)+'<div class="app-meta"><div class="row"><span class="app-name">'+esc(x.app)+'</span><span class="app-time">'+fmt(t)+' / '+fmt(x.limit)+'</span></div><div class="track"><div class="'+(x.on&&t>x.limit?'over':'')+'" style="width:'+Math.min(100,Math.round(t/Math.max(1,x.limit)*100))+'%"></div></div></div></div>'}).join('')+'</div></section>'+
+'<div class="section-head"><h2 class="section-title">Make time for</h2><button data-go="hobbies">Edit activities →</button></div>'+
+'<section class="hobby-card"><div class="label">YOU PICKED THIS</div><h3>'+(hobby?esc(hobby.name):'Something offline')+'</h3><p>'+(hobby?esc(hobby.days)+' · '+esc(hobby.time):'Add an activity you want to do more often.')+'</p><button data-act="'+(hobby?'start':'hobbies')+'">'+(hobby?'Take a break':'Add an activity')+' →</button></section>'+
+'<div class="row"><button class="btn outline" data-add-app="Discord">Add 10 demo min</button><button class="btn" data-act="prompt">See reminder</button></div>'+
+'<p class="note">Demo data only. A browser cannot read Screen Time from other apps. Test the flow here, then connect real tracking in the native app.</p>';
 }
 function rules(){
-return head('Limits.','A heads-up, not a hard stop.')+
-'<div class="row"><span class="eyebrow">Daily rules</span><span class="pill">Browser demo</span></div>'+
-'<p class="note" style="margin:14px 0 22px">Adjust the limits below. Usage numbers are simulated; native Screen Time monitoring stays in the Swift app.</p>'+
-s.rules.map(r=>'<section class="list-card"><div class="rule-top">'+appIcon(r.app)+'<div style="flex:1"><h3>'+esc(r.app)+'</h3><p>Today: '+fmt(s.usage[r.app]||0)+(num(s.usage[r.app])>r.limit?' · Over limit':'')+'</p></div><button class="switch '+(r.on?'on':'')+'" data-toggle="'+esc(r.app)+'" aria-pressed="'+r.on+'" aria-label="Toggle '+esc(r.app)+' reminder"><i></i></button></div><div class="range-row"><label class="small" for="limit-'+esc(r.app)+'">Daily limit</label><input id="limit-'+esc(r.app)+'" type="range" min="5" max="180" step="5" value="'+r.limit+'" data-limit="'+esc(r.app)+'" aria-label="'+esc(r.app)+' daily minutes"><output>'+r.limit+' min</output></div></section>').join('')+
-'<button class="btn block" data-act="prompt">Preview reminder →</button>'+
-'<div class="section-head"><h2 class="section-title">How this works</h2></div>'+
-'<section class="surface soft"><p style="font-size:13px;margin:0 0 9px">When you reach a limit, PAUSE gives you a choice.</p><p class="note" style="margin:0">Take a break, add 15 minutes, or dismiss it. Extending time never changes your saved daily limit.</p></section>'+
-'<button class="btn outline block" data-act="addten">Simulate another 10 minutes</button>';
+return head('Limits','Choose the apps to watch and how long is enough.')+
+'<div class="row"><span class="eyebrow">DAILY RULES</span><span class="demo-chip"><i></i> SAMPLE USAGE</span></div>'+
+'<p class="note">You can edit these anytime. PAUSE asks before you keep going; it never locks you out.</p>'+
+s.rules.map(r=>'<section class="list-card"><div class="rule-top">'+appIcon(r.app)+'<div style="flex:1"><h3>'+esc(r.app)+'</h3><p>'+fmt(num(s.usage[r.app]))+' today'+(r.on&&num(s.usage[r.app])>r.limit?' · Limit reached':'')+'</p></div><button class="switch '+(r.on?'on':'')+'" data-toggle="'+esc(r.app)+'" role="switch" aria-checked="'+r.on+'" aria-label="Enable '+esc(r.app)+' reminder"><i></i></button></div><div class="range-row"><label class="small" for="limit-'+esc(r.app)+'">Daily limit</label><input id="limit-'+esc(r.app)+'" type="range" min="5" max="180" step="5" value="'+r.limit+'" data-limit="'+esc(r.app)+'"><output>'+r.limit+' min</output></div><div class="editable-row"><button class="btn outline" data-add-app="'+esc(r.app)+'">Add 10 sample min</button></div></section>').join('')+
+'<button class="btn block" data-act="prompt">Preview an over-limit reminder →</button>'+
+'<div class="section-head"><h2 class="section-title">What happens next?</h2></div>'+
+'<section class="surface soft"><p style="font-size:13px;line-height:1.6;margin:0">See your usage, get a suggestion based on a hobby you chose, then decide: take a break, add 15 minutes or dismiss. Your saved limit stays the same.</p></section>';
+}
+function activity(){
+const total=sum(),top=s.rules.reduce((a,b)=>num(s.usage[a.app])>num(s.usage[b.app])?a:b,s.rules[0]);
+return head('Activity','See where the time went. These numbers are samples.')+
+'<div class="activity-overview"><div class="mini-metric"><span>Selected app time</span><strong>'+fmt(total)+'</strong><small>Sample today</small></div><div class="mini-metric"><span>Most used</span><strong>'+esc(top.app)+'</strong><small>'+fmt(num(s.usage[top.app]))+'</small></div></div>'+
+'<div class="section-head"><h2 class="section-title">Usage</h2><span class="tracking-indicator '+(!s.demoTracking?'off':'')+'"><i></i>'+(s.demoTracking?'Preview active':'Paused')+'</span></div>'+
+'<section class="surface"><div class="segmented">'+['Day','Week','Month'].map(x=>'<button class="'+(s.period===x?'selected':'')+'" data-period="'+x+'">'+x+'</button>').join('')+'</div>'+bars()+'<div class="legend"><span><b class="dark"></b>Activity</span><span><b class="warn"></b>Limit crossed</span></div></section>'+
+'<div class="section-head"><h2 class="section-title">Apps</h2><button data-go="rules">Limits →</button></div>'+
+'<section class="surface">'+s.rules.map(r=>'<div class="app-track-row">'+appIcon(r.app)+'<div class="app-name">'+esc(r.app)+'<br><small>'+fmt(num(s.usage[r.app]))+' · '+r.limit+' min limit</small></div><button class="btn outline" style="padding:8px 9px" data-add-app="'+esc(r.app)+'">+10 min</button></div>').join('')+'</section>'+
+'<div class="section-head"><h2 class="section-title">This browser session</h2></div>'+
+'<section class="surface"><div class="row"><div><div class="section-title">PAUSE preview</div><p class="note" style="margin:5px 0 0">Counts only when this page is visible.</p></div><strong id="preview-active">'+Math.floor(s.previewSeconds/60)+'m '+Math.floor(s.previewSeconds%60)+'s</strong></div><div class="divider"></div><button class="btn outline block" data-track="toggle">'+(s.demoTracking?'Pause preview session':'Resume preview session')+'</button></section>'+
+'<p class="note">The Mac and iPhone versions track app usage natively. This website does not request system permissions or monitor other apps.</p>';
 }
 function hobbies(){
-return head('Your time.','Less scrolling. More of this.')+
-'<span class="eyebrow">Things you want to make room for</span>'+
-'<div style="margin:17px 0">'+s.hobbies.map(h=>'<section class="list-card"><div class="row"><div><h3>'+esc(h.name)+'</h3><p>'+esc(h.days)+' · '+esc(h.time)+'</p></div><button class="btn '+(s.picked===h.id?'':'outline')+'" data-pick="'+h.id+'">'+(s.picked===h.id?'Selected':'Choose')+'</button></div><div class="button-row"><button class="btn light" data-act="start" data-hobby="'+h.id+'">Start now</button><button class="btn outline" data-remove-hobby="'+h.id+'">Remove</button></div></section>').join('')+'</div>'+
-'<div class="section-head"><h2 class="section-title">Add an activity</h2></div>'+
-'<form id="add-hobby" class="surface"><label class="field">Activity name<input name="name" maxlength="32" placeholder="e.g. Reading, guitar, running" required></label><label class="field">Preferred time<input name="time" type="time" value="20:00" required></label><label class="field">When<select name="days"><option>Every day</option><option>Weekdays</option><option>Weekends</option><option>Whenever I can</option></select></label><button class="btn block" type="submit">Save activity</button></form>'+
-'<p class="note">These choices help PAUSE suggest something you actually want to do. They are preferences, not appointments.</p>';
+const h=s.hobbies.find(x=>x.id===editingHobbyId),editing=Boolean(h);
+return head('Activities','Make time for the things you keep putting off.')+
+'<span class="eyebrow">YOUR ACTIVITIES</span>'+
+'<div style="margin:15px 0">'+s.hobbies.map(x=>'<section class="list-card"><div class="row"><div><h3>'+esc(x.name)+'</h3><p>'+esc(x.days)+' · '+esc(x.time)+'</p></div><button class="btn '+(s.picked===x.id?'':'outline')+'" data-pick="'+x.id+'">'+(s.picked===x.id?'Selected':'Choose')+'</button></div><div class="button-row"><button class="btn light" data-edit-hobby="'+x.id+'">Edit</button><button class="btn outline" data-remove-hobby="'+x.id+'">Remove</button></div></section>').join('')+'</div>'+
+'<div class="section-head"><h2 class="section-title">'+(editing?'Edit activity':'Add an activity')+'</h2></div>'+
+'<form id="add-hobby" class="surface"><label class="field">Activity name<input name="name" maxlength="32" value="'+(editing?esc(h.name):'')+'" placeholder="Reading, running, sketching" required></label><label class="field">Preferred time<input name="time" type="time" value="'+(editing?inputTime(h.time):'20:00')+'" required></label><label class="field">When<select name="days">'+['Every day','Weekdays','Weekends','Whenever I can'].map(x=>'<option '+(editing&&h.days===x?'selected':'')+'>'+x+'</option>').join('')+'</select></label><button class="btn block" type="submit">'+(editing?'Save changes':'Add activity')+'</button>'+(editing?'<button class="btn outline block" type="button" data-edit-cancel="1" style="margin-top:9px">Cancel</button>':'')+'</form>'+
+'<p class="note">Preferred times are a guide, not a schedule. PAUSE does not check whether you actually did the activity.</p>';
 }
+function inputTime(value){const m=String(value||'').match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(!m)return '20:00';let h=Number(m[1])%12+(m[3].toUpperCase()==='PM'?12:0);return String(h).padStart(2,'0')+':'+m[2]}
 function layoutBoard(message){const rows=String(message||'').toUpperCase().split('\n').flatMap(line=>line.length?line.match(/.{1,22}/g):['']).slice(0,6);const result=Array.from({length:6},()=>Array(22).fill(' '));rows.forEach((row,i)=>{const top=Math.floor((6-rows.length)/2)+i;const left=Math.floor((22-row.length)/2);Array.from(row).forEach((c,j)=>{if(top>=0&&top<6&&left+j<22)result[top][left+j]=c})});return result.flat().map(c=>'<span class="flap">'+(c===' '?'&nbsp;':esc(c))+'</span>').join('')}
 function board(){return head('The board.','A little reminder, on display.')+
 '<span class="eyebrow">Split-flap preview · 6 × 22</span><div class="board-preview"><div class="board-tiles" id="board-tiles">'+layoutBoard(s.board)+'</div><div class="board-foot">P A U S E</div></div>'+
@@ -137,15 +154,31 @@ function board(){return head('The board.','A little reminder, on display.')+
 '<div class="section-head"><h2 class="section-title">Quick messages</h2></div>'+
 '<div class="choice-grid"><button class="choice" data-message="TIME FOR A BREAK\nPICK UP THAT BOOK"><b>Reading time</b><small>A reminder to return to your hobby</small></button><button class="choice" data-message="YOUR LIMIT IS UP\nSTEP AWAY FOR A WHILE"><b>Limit reached</b><small>A simple check-in</small></button><button class="choice" data-message="ONE SMALL PAUSE\nCAN CHANGE YOUR DAY"><b>Take a pause</b><small>A quieter moment</small></button><button class="choice" data-message="LESS SCREEN\nMORE LIFE"><b>PAUSE</b><small>Our simplest message</small></button></div>'+
 '<p class="note">This is a browser-only preview. It does not send messages to your physical board or Mac controller.</p>'}
-function settings(){return head('Settings.','Only what you choose.')+
-'<span class="eyebrow">Experience</span><section class="surface"><div class="setting-row"><div><b>Demo check-ins</b><small>Enable the preview reminders</small></div><button class="switch '+(s.enabled?'on':'')+'" data-setting="enabled" aria-pressed="'+s.enabled+'"><i></i></button></div><div class="setting-row"><div><b>Motion</b><small>Keep interactions gentle</small></div><button class="switch '+(s.motion?'on':'')+'" data-setting="motion" aria-pressed="'+s.motion+'"><i></i></button></div></section>'+
-'<div class="section-head"><h2 class="section-title">Privacy</h2></div><section class="surface"><p style="font-size:13px;line-height:1.65;margin:0">This prototype only stores preferences and simulated data in this browser. It does not read your Screen Time, other apps, messages, or location.</p><div class="divider"></div><button class="btn outline block" data-act="reset">Reset demo data</button></section>'+
-'<div class="section-head"><h2 class="section-title">About PAUSE</h2></div><section class="surface"><p style="font:normal 27px/1.2 var(--serif);letter-spacing:-.04em;margin:0 0 10px">Less screen.<br>More life.</p><p class="note">A concept that helps people notice when they have spent more time online than they intended, then suggests the offline activities they care about.</p><p class="note">Web prototype v0.1 · Native monitoring is available only in the separately installed Swift app after Apple authorization.</p></section>'}
-function navHtml(){const labels=[['today','Today'],['rules','Limits'],['hobbies','Hobbies'],['board','Board'],['settings','Settings']];return labels.map(t=>'<button class="tab '+(s.tab===t[0]?'active':'')+'" data-go="'+t[0]+'" aria-current="'+(s.tab===t[0]?'page':'false')+'">'+icon(t[0])+'<span>'+t[1]+'</span></button>').join('')}
+function settings(){return head('Settings','Set PAUSE up the way you want.')+
+'<section class="surface"><div class="setting-row"><div><b>Demo tracking</b><small>Only measures time spent on this page.</small></div><button class="switch '+(s.demoTracking?'on':'')+'" data-track="toggle" role="switch" aria-checked="'+s.demoTracking+'"><i></i></button></div>'+
+'<div class="setting-row"><div><b>Check-in previews</b><small>Show reminders when your sample usage passes a limit.</small></div><button class="switch '+(s.enabled?'on':'')+'" data-setting="enabled" role="switch" aria-checked="'+s.enabled+'"><i></i></button></div>'+
+'<div class="setting-row"><div><b>Motion</b><small>Reduce animation if you prefer.</small></div><button class="switch '+(s.motion?'on':'')+'" data-setting="motion" role="switch" aria-checked="'+s.motion+'"><i></i></button></div></section>'+
+'<div class="section-head"><h2 class="section-title">Setup & display</h2></div><section class="surface"><div class="setting-row"><div><b>Onboarding</b><small>Change your starting limit and hobby.</small></div><button class="btn outline" data-onboarding="restart">Edit</button></div><div class="setting-row"><div><b>Board preview</b><small>Make a message for the split-flap display.</small></div><button class="btn outline" data-go="board">Open</button></div></section>'+
+'<div class="section-head"><h2 class="section-title">Privacy</h2></div><section class="surface"><p style="font-size:12px;line-height:1.7;margin:0">This preview stores your choices in this browser. It does not read iPhone Screen Time, installed apps, notifications, or location. The native iPhone app needs Apple authorization to monitor selected activity.</p><div class="divider"></div><button class="btn outline block" data-act="reset">Reset sample data</button></section>'+
+'<p class="note">PAUSE · Design prototype. Real app monitoring is only available through a separately installed native app.</p>'}
+
+function navHtml(){const labels=[['today','Today'],['activity','Activity'],['rules','Limits'],['hobbies','Hobbies'],['settings','Settings']];return labels.map(t=>'<button class="tab '+(s.tab===t[0]?'active':'')+'" data-go="'+t[0]+'" aria-current="'+(s.tab===t[0]?'page':'false')+'">'+icon(t[0])+'<span>'+t[1]+'</span></button>').join('')}
 function notify(msg){s.toast=msg;document.getElementById('toast-root').innerHTML='<div class="toast" role="status">'+esc(msg)+'</div>';clearTimeout(notify.timer);notify.timer=setTimeout(()=>{s.toast='';document.getElementById('toast-root').innerHTML=''},3600)}
-function modal(){const place=document.getElementById('modal-root');if(!s.showPrompt){place.innerHTML='';return}const rule=activeRule()||s.rules.find(r=>r.on)||s.rules[0],h=chosen(),used=num(s.usage[rule.app]||0);place.innerHTML='<div class="prompt" role="dialog" aria-modal="true" aria-label="Screen-time check-in"><div class="prompt-sheet"><div class="handle"></div><div class="row"><span class="eyebrow">A PAUSE check-in</span><button class="ghost-circle" data-act="close" aria-label="Close check-in">×</button></div><h2>'+esc(rule.app)+' has reached '+fmt(used)+'.</h2><p>Your daily limit is '+fmt(rule.limit)+'.'+(h?' You wanted to make room for '+esc(h.name.toLowerCase())+'. Want to switch?':' Want to step away for a while?')+'</p><button class="btn block" data-act="start">'+(h?'Start '+esc(h.name.toLowerCase()):'Take a break')+' →</button><div class="button-row"><button class="btn light" data-act="snooze">15 more minutes</button><button class="btn outline" data-act="dismiss">Not now</button></div></div></div>'}
-function render(preserve){nav.innerHTML=navHtml();root.innerHTML=s.tab==='today'?today():s.tab==='rules'?rules():s.tab==='hobbies'?hobbies():s.tab==='board'?board():settings();if(!preserve)root.scrollTop=0;modal();save()}
-function setTab(tab){if(!['today','rules','hobbies','board','settings'].includes(tab))return;s.tab=tab;s.showPrompt=false;render()}
+function modal(){const place=document.getElementById('modal-root');if(!s.onboarded){place.innerHTML=onboardView();window.lucide?.createIcons?.();return;}if(!s.showPrompt){place.innerHTML='';return}const rule=activeRule()||s.rules.find(r=>r.on)||s.rules[0],h=chosen(),used=num(s.usage[rule.app]||0);place.innerHTML='<div class="prompt" role="dialog" aria-modal="true" aria-label="Screen-time check-in"><div class="prompt-sheet"><div class="handle"></div><div class="row"><span class="eyebrow">A PAUSE check-in</span><button class="ghost-circle" data-act="close" aria-label="Close check-in">×</button></div><h2>'+esc(rule.app)+' has reached '+fmt(used)+'.</h2><p>Your daily limit is '+fmt(rule.limit)+'.'+(h?' You wanted to make room for '+esc(h.name.toLowerCase())+'. Want to switch?':' Want to step away for a while?')+'</p><button class="btn block" data-act="start">'+(h?'Start '+esc(h.name.toLowerCase()):'Take a break')+' →</button><div class="button-row"><button class="btn light" data-act="snooze">15 more minutes</button><button class="btn outline" data-act="dismiss">Not now</button></div></div></div>'}
+function onboardView(){
+ const steps=['Welcome','Set a limit','Make time for more'];
+ const lim=(s.rules.find(x=>x.app==='Discord')||s.rules[0]).limit;
+ return '<section class="onboard-cover" role="dialog" aria-modal="true" aria-label="PAUSE setup">'+
+ '<div class="onboard-top"><span>PAUSE</span><span class="onboard-step">SETUP '+(onboardingStep+1)+' OF 3</span></div>'+
+ '<div class="onboard-progress">'+steps.map((_,i)=>'<i class="'+(i<=onboardingStep?'on':'')+'"></i>').join('')+'</div>'+
+ (onboardingStep===0?'<div class="onboard-art" aria-hidden="true"></div><h2>Less scrolling.<br>More of your day.</h2><p>Pick a screen-time limit and something you want to do instead. We will remind you when you reach the limit. The choice stays yours.</p><div class="setup-card"><i data-lucide="shield-check"></i><div><h3>Your screen time stays private.</h3><p>Web preview uses sample data only.</p></div></div>':
+ onboardingStep===1?'<div class="onboard-art" aria-hidden="true"></div><h2>What is taking up your time?</h2><p>Start with Discord. You can change the app limits later.</p><div class="onboard-field"><label for="onboard-limit">Daily Discord limit</label><select id="onboard-limit">'+[15,20,30,45,60,90,120].map(x=>'<option value="'+x+'" '+(x===lim?'selected':'')+'>'+x+' minutes</option>').join('')+'</select></div>':
+ '<div class="onboard-art" aria-hidden="true"></div><h2>What would you rather do?</h2><p>Choose a hobby and a time that usually works. You can edit both whenever you like.</p><div class="onboard-field"><label for="onboard-hobby">Activity</label><select id="onboard-hobby">'+['Reading','Running','Sketching','Cooking','Guitar','Walking'].map(x=>'<option>'+x+'</option>').join('')+'</select></div><div class="onboard-field"><label for="onboard-time">Preferred time</label><input id="onboard-time" type="time" value="20:00"></div>')+
+ '<div class="onboard-actions">'+(onboardingStep?'<button class="btn outline" data-onboarding="back">Back</button>':'<button class="btn outline" data-onboarding="skip">Skip for now</button>')+'<button class="btn" data-onboarding="'+(onboardingStep===2?'finish':'next')+'">'+(onboardingStep===2?'Finish setup':'Continue')+'</button></div></section>';
+}
+
+function render(preserve){nav.innerHTML=navHtml();root.innerHTML=s.tab==='today'?today():s.tab==='activity'?activity():s.tab==='rules'?rules():s.tab==='hobbies'?hobbies():s.tab==='board'?board():settings();if(!preserve)root.scrollTop=0;modal();window.lucide?.createIcons?.();save()}
+function setTab(tab){if(!['today','activity','rules','hobbies','board','settings'].includes(tab))return;s.tab=tab;s.showPrompt=false;render()}
 document.addEventListener('click',function(e){const b=e.target.closest('button');if(!b)return;
 if(b.dataset.go){setTab(b.dataset.go);return}
 if(b.dataset.period){s.period=b.dataset.period;render(true);return}
@@ -162,12 +195,37 @@ if(act==='dismiss'||act==='close'){s.showPrompt=false;render(true);if(act==='dis
 if(act==='reset'){if(window.confirm('Reset the demo limits, hobbies, and usage?')){try{localStorage.removeItem(STORE)}catch(e){}s=JSON.parse(JSON.stringify(DEFAULT));render();notify('Demo reset.')}return}}});
 document.addEventListener('input',function(e){const item=e.target;if(item.dataset.limit){const o=item.closest('.range-row').querySelector('output');if(o)o.textContent=item.value+' min'}});
 document.addEventListener('change',function(e){const item=e.target;if(item.dataset.limit){const r=s.rules.find(x=>x.app===item.dataset.limit);if(r)r.limit=Number(item.value);save();notify('Daily limit updated.') }});
-document.addEventListener('submit',function(e){if(e.target.id==='add-hobby'){e.preventDefault();const f=new FormData(e.target),name=String(f.get('name')||'').trim().slice(0,32);if(!name)return;const raw=String(f.get('time')||'20:00').split(':'),hh=Number(raw[0]),mm=String(raw[1]||'00').padStart(2,'0');const time=(hh%12||12)+':'+mm+' '+(hh>=12?'PM':'AM');const id=Date.now();s.hobbies.push({id,name,time,days:String(f.get('days')||'Every day')});s.picked=id;render(true);notify('Activity saved.');return}
+document.addEventListener('submit',function(e){if(e.target.id==='add-hobby'){e.preventDefault();const f=new FormData(e.target),name=String(f.get('name')||'').trim().slice(0,32);if(!name)return;const raw=String(f.get('time')||'20:00').split(':'),hh=Number(raw[0]),mm=String(raw[1]||'00').padStart(2,'0');const time=(hh%12||12)+':'+mm+' '+(hh>=12?'PM':'AM');const days=String(f.get('days')||'Every day');if(editingHobbyId){const old=s.hobbies.find(x=>x.id===editingHobbyId);if(old){old.name=name;old.time=time;old.days=days}editingHobbyId=null;render(true);notify('Activity updated.');return}const id=Date.now();s.hobbies.push({id,name,time,days});s.picked=id;render(true);notify('Activity saved.');return}
 if(e.target.id==='board-form'){e.preventDefault();const m=new FormData(e.target);s.board=String(m.get('board')||'').slice(0,132);render(true);notify('Board preview updated.');return}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&s.showPrompt){s.showPrompt=false;modal()}});
+document.addEventListener('click',function(e){
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.onboarding){const action=b.dataset.onboarding;
+  if(action==='restart'){s.onboarded=false;onboardingStep=0;render(true);return}
+  if(action==='skip'){s.onboarded=true;onboardingStep=0;render(true);notify('You can edit setup in Settings.');return}
+  if(action==='back'){onboardingStep=Math.max(0,onboardingStep-1);modal();return}
+  if(action==='next'){
+    if(onboardingStep===1){const value=Number(document.getElementById('onboard-limit')?.value);const rule=s.rules.find(x=>x.app==='Discord');if(rule&&value>=5){rule.limit=value;rule.on=true}}
+    onboardingStep=Math.min(2,onboardingStep+1);modal();return}
+  if(action==='finish'){
+    const name=document.getElementById('onboard-hobby')?.value||'Reading',time=document.getElementById('onboard-time')?.value||'20:00';
+    const hh=Number(time.slice(0,2)),mm=time.slice(3),display=(hh%12||12)+':'+mm+' '+(hh>=12?'PM':'AM');
+    const existing=s.hobbies.find(h=>h.name.toLowerCase()===name.toLowerCase());
+    const id=existing?.id||Date.now();
+    if(existing){existing.time=display;existing.days='Every day'}else{s.hobbies.push({id,name,time:display,days:'Every day'})}
+    s.picked=id;s.onboarded=true;onboardingStep=0;render(true);notify('Setup saved.');return}
+ }
+ if(b.dataset.editHobby){editingHobbyId=Number(b.dataset.editHobby);render(true);setTimeout(()=>document.getElementById('add-hobby')?.scrollIntoView({block:'nearest',behavior:'smooth'}),0);return}
+ if(b.dataset.editCancel){editingHobbyId=null;render(true);return}
+ if(b.dataset.track){s.demoTracking=!s.demoTracking;previewLast=Date.now();render(true);notify(s.demoTracking?'Preview session running.':'Preview session paused.');return}
+ if(b.dataset.addApp){const app=b.dataset.addApp;const r=s.rules.find(x=>x.app===app);const before=r?.on&&num(s.usage[app])>=r.limit;s.usage[app]=num(s.usage[app])+10;render(true);if(!before&&r?.on&&num(s.usage[app])>=r.limit&&s.enabled&&!s.snoozed){s.showPrompt=true;modal()}return}
+},true);
+setInterval(()=>{const now=Date.now(),delta=Math.min(2,Math.max(0,(now-previewLast)/1000));previewLast=now;if(!document.hidden&&s.demoTracking&&s.onboarded){s.previewSeconds+=delta;const el=document.getElementById('preview-active');if(el){el.textContent=Math.floor(s.previewSeconds/60)+'m '+Math.floor(s.previewSeconds%60)+'s'}if(Math.floor(now/15000)!==Math.floor((now-delta*1000)/15000))save()}},1000);
+
 document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:false}).replace(/^24:/,'0:');
 render();
 })();
 </script>
+<script>window.addEventListener('load',()=>window.lucide?.createIcons?.());</script>
 </body>
 </html>
