@@ -78,8 +78,8 @@ function fmt(n){const m=Math.max(0,Math.round(Number(n)||0));return m>=60?Math.f
 function num(n){return Math.max(0,Math.round(Number(n)||0))}
 function sum(){return Object.values(s.usage).reduce((a,b)=>a+num(b),0)}
 function chosen(){return s.hobbies.find(h=>h.id===s.picked)||s.hobbies[0]||null}
-function activeRule(){return s.rules.find(r=>r.on&&num(s.usage[r.app])>=num(r.limit))}
-function icon(name){const paths={today:'house',activity:'chart-no-axes-column',rules:'hourglass',hobbies:'heart-handshake',board:'grid-3x3',settings:'settings',more:'circle-help'};return '<i data-lucide="'+(paths[name]||name)+'" aria-hidden="true"></i>'}
+function activeRule(){if(s.finished||Date.now()<Number(s.snoozeUntil||0)||Date.now()<Number(s.dismissedUntil||0))return null;return s.rules.find(r=>r.on&&num(s.usage[r.app])>=num(r.limit))}
+function icon(name){const paths={today:'house',activity:'bar-chart-3',rules:'hourglass',hobbies:'heart-handshake',board:'grid-3x3',settings:'settings',more:'circle-help'};return '<i data-lucide="'+(paths[name]||name)+'" aria-hidden="true"></i>'}
 
 const GLYPHS={
 '0':['01110','10001','10011','10101','11001','10001','01110'],
@@ -104,7 +104,7 @@ const hobby=chosen(),r=activeRule(),todayDate=new Date(),day=todayDate.getDay();
 const week=['M','T','W','T','F','S','S'];const monday=(day+6)%7;
 const weekStrip='<div class="week-strip">'+week.map((label,i)=>{const dt=new Date(todayDate);dt.setDate(todayDate.getDate()+i-monday);const current=i===monday;return '<div class="day-cell '+(current?'today':'')+'"><span>'+label+'</span><span class="day-number">'+dt.getDate()+'</span></div>'}).join('')+'</div>';
 const d=s.rules.find(x=>x.app==='Discord')||s.rules[0],used=num(s.usage.Discord||0),over=used>d.limit;
-return head('Today','Your screen time and what you planned to do instead.')+weekStrip+
+return head('Today','Your screen time and what you planned to do instead.')+weekStrip+(s.finished?'<section class="setup-card"><i data-lucide="book-open" aria-hidden="true"></i><div><h3>Taking a break</h3><p>PAUSE is quiet. Your limit is unchanged.</p></div><button data-act="undo">Undo</button></section>':Date.now()<Number(s.snoozeUntil||0)?'<section class="setup-card"><i data-lucide="clock" aria-hidden="true"></i><div><h3>15 more minutes</h3><p>Reminders are paused until '+new Date(s.snoozeUntil).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+'.</p></div><button data-act="undo">Undo</button></section>':'')+
 '<div class="flow-intro"><div class="flow-label">YOUR DAILY CHECK-IN</div><h2>'+(over?'Discord is '+(used-d.limit)+' min over your limit.':'Keep your time for what matters.')+'</h2><p>'+(hobby?'You set '+esc(hobby.name.toLowerCase())+' for '+esc(hobby.time)+'.':'Set up a hobby to get useful suggestions.')+'</p></div>'+
 '<div class="activity-overview"><div class="mini-metric"><span>Selected apps</span><strong>'+fmt(sum())+'</strong><small>Sample activity today</small></div><div class="mini-metric"><span>Limits passed</span><strong>'+s.rules.filter(x=>x.on&&num(s.usage[x.app])>x.limit).length+'</strong><small>Based on your rules</small></div></div>'+
 '<div class="row" style="margin:0 0 14px"><span class="tracking-indicator '+(!s.demoTracking?'off':'')+'"><i></i>'+(s.demoTracking?'Preview session tracking on':'Preview session paused')+'</span><button data-go="activity" class="btn outline" style="padding:9px 12px">Activity →</button></div>'+
@@ -187,11 +187,12 @@ if(b.dataset.setting){s[b.dataset.setting]=!s[b.dataset.setting];render(true);re
 if(b.dataset.pick){s.picked=Number(b.dataset.pick);render(true);notify('Preference saved for the browser demo.');return}
 if(b.dataset.removeHobby){const id=Number(b.dataset.removeHobby);s.hobbies=s.hobbies.filter(x=>x.id!==id);if(s.picked===id)s.picked=s.hobbies[0]?.id||null;render(true);return}
 if(b.dataset.message){s.board=b.dataset.message;render(true);notify('Board preview updated.');return}
-if(b.dataset.act){const act=b.dataset.act;if(act==='hobbies'){setTab('hobbies');return}if(act==='addten'){s.usage.Discord=num(s.usage.Discord)+10;render(true);if(s.enabled&&activeRule()&&!s.snoozed){s.showPrompt=true;modal()}return}
+if(b.dataset.act){const act=b.dataset.act;if(act==='hobbies'){setTab('hobbies');return}if(act==='addten'){s.usage.Discord=num(s.usage.Discord)+10;render(true);if(s.enabled&&activeRule()){s.showPrompt=true;modal()}return}
 if(act==='prompt'){s.showPrompt=true;modal();return}
+if(act==='undo'){s.finished=false;s.snoozeUntil=0;s.dismissedUntil=0;s.snoozed=false;render(true);notify('Back to your usual reminders.');return}
 if(act==='start'){if(b.dataset.hobby)s.picked=Number(b.dataset.hobby);s.showPrompt=false;s.finished=true;render(true);notify('Enjoy your time away. PAUSE will stay quiet.');return}
-if(act==='snooze'){s.snoozed=true;s.showPrompt=false;render(true);notify('Okay. No more demo check-ins this session.');return}
-if(act==='dismiss'||act==='close'){s.showPrompt=false;render(true);if(act==='dismiss')notify('Dismissed. You can keep going.');return}
+if(act==='snooze'){s.snoozeUntil=Date.now()+15*60*1000;s.snoozed=false;s.showPrompt=false;render(true);notify('Reminders paused for 15 minutes.');return}
+if(act==='dismiss'||act==='close'){s.showPrompt=false;if(act==='dismiss')s.dismissedUntil=Date.now()+45*60*1000;render(true);if(act==='dismiss')notify('Dismissed. We will check back later.');return}
 if(act==='reset'){if(window.confirm('Reset the demo limits, hobbies, and usage?')){try{localStorage.removeItem(STORE)}catch(e){}s=JSON.parse(JSON.stringify(DEFAULT));render();notify('Demo reset.')}return}}});
 document.addEventListener('input',function(e){const item=e.target;if(item.dataset.limit){const o=item.closest('.range-row').querySelector('output');if(o)o.textContent=item.value+' min'}});
 document.addEventListener('change',function(e){const item=e.target;if(item.dataset.limit){const r=s.rules.find(x=>x.app===item.dataset.limit);if(r)r.limit=Number(item.value);save();notify('Daily limit updated.') }});

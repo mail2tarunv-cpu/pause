@@ -40,7 +40,7 @@ const DIGITS={
 '8':['01110','10001','10001','01110','10001','10001','01110'],
 '9':['01110','10001','10001','01111','00001','00001','01110']};
 function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function icon(name){const icons={grid:'layout-dashboard',bars:'chart-column',hourglass:'hourglass',spark:'book-open',board:'grid-3x3',link:'plug-zap',settings:'settings'};return `<i data-lucide="${icons[name]||name}" aria-hidden="true"></i>`}
+function icon(name){const icons={grid:'layout-dashboard',bars:'bar-chart-3',hourglass:'hourglass',spark:'book-open',board:'grid-3x3',link:'plug-zap',settings:'settings'};return `<i data-lucide="${icons[name]||name}" aria-hidden="true"></i>`}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 function appById(id){return s.apps.find(a=>a.id===id)}
 function selectedGoal(){return s.goals.find(g=>g.id===s.picked)||s.goals[0]}
@@ -55,7 +55,15 @@ function section(name,action,label){return `<div class="section-head"><h3>${esc(
 function histogram(period){const values=period==='week'?[48,75,67,54,72,42,33]:[5,12,6,8,18,28,46,55,43,34,38,62,48,21,45,53,31,24,40,26,8,3,1,1];const max=Math.max(...values);return `<div class="histogram" aria-label="Sample ${period} activity">${values.map((v,i)=>`<div class="hour"><div class="hour-bar ${i===Math.floor(values.length*.66)?'warning':i>5&&i<Math.floor(values.length*.73)?'active':''}" style="height:${Math.max(4,v/max*100).toFixed(0)}%" title="${v} sample minutes"></div></div>`).join('')}</div><div class="histogram-labels">${(period==='week'?['MON','THU','SUN']:['12 AM','6 AM','12 PM','6 PM','11 PM']).map(x=>`<span>${x}</span>`).join('')}</div>`}
 function mark(a){const icons={figma:'figma',chrome:'chrome',discord:'message-circle',cursor:'code-2',youtube:'youtube',notion:'notebook'};return `<span class="app-symbol ${esc(a.id)}" aria-hidden="true"><i data-lucide="${icons[a.id]||'app-window'}"></i></span>`}
 function appRows(n){return [...s.apps].sort((a,b)=>b.minutes-a.minutes).slice(0,n).map(a=>{const exceeded=a.limit>0&&a.minutes>a.limit,pct=Math.min(100,a.limit?a.minutes/a.limit*100:a.minutes/140*100);return `<div class="activity-row">${mark(a)}<div class="activity-text"><strong>${esc(a.name)}</strong><small>${esc(a.category)} · ${a.limit?a.limit+' min limit':'No limit'}</small><div class="mini-progress"><span class="${exceeded?'over':''}" style="width:${pct}%"></span></div></div><div class="activity-time">${fmt(a.minutes)}${exceeded?`<small>+${a.minutes-a.limit} MIN OVER</small>`:''}</div></div>`}).join('')}
-function overview(){const goal=selectedGoal(),app=appById(s.watchApp||'discord')||appById('discord'),exceeded=app.limit>0&&app.minutes>app.limit;return title('Today','Your screen time, and what you want to do instead.','<span class="demo-pill"><i></i> INTERACTIVE DEMO</span>')+`
+function feedbackBanner(){
+ let title='',body='';
+ if(s.breakActive){title='Taking a break';body='PAUSE is quiet. Your daily limits are still there.'}
+ else if(Date.now()<Number(s.snoozeUntil||0)){title='15 more minutes';body='Reminders are paused until '+new Date(s.snoozeUntil).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+'.'}
+ else if(Date.now()<Number(s.dismissedUntil||0)){title='Reminder dismissed';body='PAUSE will check back later. Your limits are unchanged.'}
+ if(!title)return '';
+ return '<div class="note-box choice-banner" style="margin:-9px 0 19px;background:#fffaf6;border-color:#f1e4da"><div class="row"><div><strong>'+title+'</strong><p style="margin:5px 0 0;font-size:11px">'+body+'</p></div><button class="btn sm" data-action="undo-choice">Undo</button></div></div>'
+}
+function overview(){const goal=selectedGoal(),app=appById(s.watchApp||'discord')||appById('discord'),exceeded=app.limit>0&&app.minutes>app.limit;return title('Today','Your screen time, and what you want to do instead.','<span class="demo-pill"><i></i> INTERACTIVE DEMO</span>')+feedbackBanner()+`
 <div class="overview-hero">
 <section class="surface total-card"><div class="surface-head"><h3>Time on your Mac</h3><small>TODAY · SAMPLE SESSION</small></div>
 <div class="total-main"><div><div class="overline total-metric-label">ACTIVE SCREEN TIME</div>${digits(total())}<div class="number-context">Foreground app usage · illustrative data</div></div><div class="total-side"><span>OVER LIMIT</span><strong>${String(over().length).padStart(2,'0')}</strong><em>APPS TODAY</em></div></div>
@@ -65,7 +73,7 @@ ${histogram('day')}<div class="tiny-legend"><span><i></i> Quiet hours</span><spa
 <div class="intent-bottom"><button class="btn white" data-action="open-reminder">Preview a reminder ↗</button><span class="small-label">No forced breaks</span></div></section></div>
 <div class="overview-bottom"><section>${section('Most used applications','go-activity','All activity')}<div class="surface">${appRows(4)}</div></section>
 <section>${section('A check-in','go-limits','Edit rule')}<div class="surface check-in-card"><div class="status-heading"><span class="alert-icon">!</span><span class="count">${exceeded?'LIMIT EXCEEDED':'RULE PREVIEW'}</span></div>
-<div class="check-in-body"><span class="overline">DISCORD · SOCIAL</span><h4>${exceeded?`${app.minutes-app.limit} minutes beyond your limit.`:'A gentle check when time is up.'}</h4><p>You spent ${app.minutes} minutes on ${esc(app.name)}. Your chosen limit is ${app.limit} minutes. ${goal?`You wanted to make time for ${esc(goal.name.toLowerCase())}.`:''}</p>
+<div class="check-in-body"><span class="overline">${esc(app.name.toUpperCase())} · ${esc(app.category.toUpperCase())}</span><h4>${exceeded?`${app.minutes-app.limit} minutes beyond your limit.`:'A gentle check when time is up.'}</h4><p>You spent ${app.minutes} minutes on ${esc(app.name)}. Your chosen limit is ${app.limit} minutes. ${goal?`You wanted to make time for ${esc(goal.name.toLowerCase())}.`:''}</p>
 <div class="check-in-actions"><button class="btn dark" data-action="open-reminder">See reminder ↗</button><button class="btn" data-action="go-limits">Edit rule</button></div>
 <div class="check-in-note">Demo only · No live Mac monitoring</div></div></div></section></div>`}
 function activity(){const creative=s.apps.filter(a=>a.category==='Creative').reduce((t,a)=>t+a.minutes,0),top=[...s.apps].sort((a,b)=>b.minutes-a.minutes)[0],cats=['Creative','Other','Social','Entertainment'].map(name=>({name,minutes:s.apps.filter(a=>a.category===name).reduce((t,a)=>t+a.minutes,0)}));return title('Activity','A breakdown of your screen time. The numbers are samples.')+`
@@ -115,18 +123,19 @@ document.addEventListener('click',e=>{
 if(e.target.classList.contains('modal-backdrop')){modalOpen=false;modal();return}
 const n=e.target.closest('[data-nav]');if(n){switchView(n.dataset.nav);return}
 const p=e.target.closest('[data-period]');if(p){s.period=p.dataset.period;render();return}
-const a=e.target.closest('[data-add]');if(a){const app=appById(a.dataset.add);if(!app)return;const before=app.limit>0&&app.minutes>app.limit;app.minutes+=10;render();if(!before&&app.limit>0&&app.minutes>app.limit&&s.reminders){modalOpen=true;modal()}toast('Added 10 sample minutes to '+app.name);return}
+const a=e.target.closest('[data-add]');if(a){const app=appById(a.dataset.add);if(!app)return;const before=app.limit>0&&app.minutes>app.limit;app.minutes+=10;render();if(!before&&app.limit>0&&app.minutes>app.limit&&s.reminders&&!s.breakActive&&Date.now()>=Number(s.snoozeUntil||0)&&Date.now()>=Number(s.dismissedUntil||0)){modalOpen=true;modal()}toast('Added 10 sample minutes to '+app.name);return}
 const pick=e.target.closest('[data-pick]');if(pick){s.picked=Number(pick.dataset.pick);render();toast('Primary activity updated.');return}
 const remove=e.target.closest('[data-remove-goal]');if(remove){const id=Number(remove.dataset.removeGoal);s.goals=s.goals.filter(g=>g.id!==id);if(s.picked===id)s.picked=s.goals[0]?.id||null;render();toast('Activity removed.');return}
 const cmd=e.target.closest('[data-action]');if(!cmd)return;
 switch(cmd.dataset.action){
+case 'undo-choice':s.breakActive=false;s.snoozeUntil=0;s.dismissedUntil=0;s.events=[];render();toast('Reminders restored.');break;
 case 'go-activity':switchView('activity');break;
 case 'go-limits':switchView('limits');break;
 case 'open-reminder':modalOpen=true;modal();break;
 case 'close-reminder':modalOpen=false;modal();break;
-case 'choose-break':s.events.unshift('Break chosen');modalOpen=false;modal();render();toast('Break chosen. PAUSE will stay quiet.');break;
-case 'snooze':s.events.unshift('15 minutes added');modalOpen=false;modal();render();toast('15-minute demo extension noted.');break;
-case 'dismiss':s.events.unshift('Reminder dismissed');modalOpen=false;modal();render();toast('Reminder dismissed.');break;
+case 'choose-break':s.breakActive=true;s.events.unshift('Break chosen');modalOpen=false;modal();render();toast('PAUSE will stay quiet while you take a break.');break;
+case 'snooze':s.snoozeUntil=Date.now()+15*60*1000;s.breakActive=false;s.events.unshift('15-minute extension');modalOpen=false;modal();render();toast('Reminders paused for 15 minutes.');break;
+case 'dismiss':s.dismissedUntil=Date.now()+45*60*1000;s.breakActive=false;s.events.unshift('Reminder dismissed');modalOpen=false;modal();render();toast('Dismissed. PAUSE will check back later.');break;
 case 'toggle-tracking':s.tracking=!s.tracking;render();toast(s.tracking?'Demo state on.':'Demo state paused.');break;
 case 'toggle-reminders':s.reminders=!s.reminders;render();toast(s.reminders?'Reminder previews on.':'Reminder previews off.');break;
 case 'board-preset':s.board='DISCORD LIMIT REACHED\n43 MIN ON SCREEN\nREADING AT 8 PM\nREADY TO SWITCH?';render();toast('Reminder scene loaded.');break;
