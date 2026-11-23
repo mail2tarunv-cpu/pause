@@ -1,89 +1,34 @@
-# PAUSE — Minimal Web UX Specification (November 2026)
+# PAUSE — Web prototype interaction contract (v6)
 
-## Why the redesign
+## Scope
+The phone and Mac Vercel previews use shared code and clearly labeled fictional usage. The split-flap web board can optionally follow companion check-ins in another tab of the same browser. The native Swift trackers and authenticated cloud transport are separate and unchanged. There is no actual iPhone/Mac device usage import, real push notification, hardware pairing, or AI service in this web release.
 
-The older web prototypes had 5 phone tabs and 7 Mac navigation destinations, repeated activity metrics, embedded test controls on Today, and standalone pages for browser/cloud/board integrations. That duplicated content and competed with the actual purpose: a short check-in that helps someone leave their screen.
+## Navigation
+Three destinations: Today, My plan, Settings. Activity and app history are drill-downs. The phone uses sheets at narrow widths; the Mac uses dialogs. The ambient display remains a separate route.
 
-## New information architecture
+## Setup
+Welcome → device access/sample-data fallback → choose reminders and categories → daily app limits and optional entertainment budget → activities (including custom activities, days, time windows and duration) → review. Editing any choice remains possible afterwards.
 
-**Main navigation (both Mac and phone):**
-- Today
-- My plan
-- Settings
+## Rules
+- Entertainment and Productivity are the two categories; default suggestions use app-name heuristics. Explicit reminder choices are independent of category changes. Tracking can be turned off without erasing past sample activity.
+- Both categories contribute to time totals. Optional daily aggregate entertainment budget includes recorded entertainment usage. Individual app reminders remain optional.
+- Day records roll over at local midnight, with archived totals and a seven-day view. Initial historic values and intraday chart distributions are illustrative. Combined device time may include overlap.
+- Quiet hours, global pause, tracking state, per-app snooze/dismissal, and minimum reminder spacing determine whether to show a sample check-in. Snooze re-evaluates on expiration while the preview is active. Close suppresses immediate repeats; Undo removes the chosen pause.
+- Break length comes from the selected activity duration or a default duration. Dismissal lasts for the app until midnight. Feedback can propose a temporary pause or another activity. No activity completion is inferred.
+- Local rule-based suggestions match activity time windows and days; past feedback influences selection. If none fits, offer a generic break. The explanation discloses the local rule model.
+- Board delivery is opt-in, generic and omits app names and figures. Idle, check-in, break and quiet states follow the local demo event; expired messages revert to idle. A cloud-held board takes precedence.
+- Same-browser tabs receive preference changes through storage events. This is not cross-device sync.
 
-**One-level detail:** Activity (from the Today usage card)
+## Acceptance scenarios
+1. Complete onboarding on a fresh browser; opt out of all reminders if desired.
+2. Reclassify YouTube while retaining a manually configured reminder; turn off tracking without erasing history.
+3. Set aggregate entertainment budget and optional individual limits.
+4. Add/edit/remove hobbies with independent windows and durations.
+5. In Settings → Preview tools, add sample time to an arbitrary app/device; observe eligibility and choose break, snooze, dismissal, or feedback. Expire snoozes to test without waiting.
+6. Verify per-app independent choices and Undo; daily rollover archives prior totals.
+7. Drill into Activity and individual app history; switch All devices / Mac / iPhone.
+8. Enable board following, open the board in the same browser, send a test, and simulate a reminder.
+9. Inspect keyboard focus, narrow layouts, contrast, reduced motion and native VoiceOver on real devices before shipping.
 
-**Contextual dialogs:** Add/edit/remove app limit, add/edit/remove activity, quiet hours, reminder, another activity, context feedback, approval. These are not navigation tabs.
-
-**Separate surface:** Ambient board remains available via Settings → Ambient board and the site root, without a duplicate full board controller in the phone or Mac dashboard.
-
-## Screen content
-
-### Today
-- Total time across selected sample apps, explicitly labeled
-- One meaningful usage distribution chart (sample only)
-- Next planned offline activity that respects preferred day/time
-- Configured daily limits with used/limit comparison
-- Contextual link to a reminder when a sample limit has been exceeded
-- Temporary choice confirmation with Undo
-
-### Activity
-- Day/week sample distribution
-- Total time and most-used selected app
-- Per-app used minutes and limit progress
-- Explicit sample-data note
-
-### My plan
-- Daily app limits: app, limit, enabled state, edit/remove, add
-- Offline activities: name, days and time, edit/remove, add
-- Rest is a valid activity; completion is not inferred
-
-### Settings
-- Reminder enable/disable
-- Pause reminders
-- Editable quiet hours
-- Transparent device-data and privacy limitation
-- Link to ambient board
-- Review onboarding
-- Collapsed sample simulation/testing controls
-
-### Onboarding
-1. Welcome, with privacy and sample-data explanation
-2. Choose apps
-3. Set daily limits
-4. Choose offline activities, days, and times
-5. Review and start
-
-## Important system boundaries
-
-- Mac native app: real foreground-app tracking and idle exclusion are possible only in the native Swift implementation.
-- iOS native app: Apple Screen Time entitlements and authorization are required, and protected app usage may not be exportable or freely synced.
-- Browser versions: app usage numbers are fictional and used for UI evaluation; preferences persist only in browser local storage.
-- Cross-device sync is not implemented in these prototypes. Opening both URLs in the same browser shares local storage, but separate phones and computers do not automatically synchronize.
-- No automatic app blocking, invented activity completion, points, streaks, forced activity reflection, or real matching.
-
-## Accessibility acceptance
-
-- Semantic main, navigation, labels, and form controls
-- 44 px touch and click targets for primary controls
-- Visible keyboard focus
-- Modal focus management, Escape, and Tab containment
-- Names and values visible independent of color
-- Readable small-text contrast on light surfaces
-- Reduced-motion preference respected
-- Status updates announced to assistive technology
-- Sample data distinguished from measured usage in text
-- Test with keyboard, VoiceOver, narrow screens, zoom, and real devices before native release
-
-## Validation flow
-
-1. Fresh browser — welcome → apps → limits → activities → review → Today.
-2. My plan — edit app limit; add/edit/remove activity.
-3. Today — view usage and drill into Activity.
-4. Settings — edit quiet hours, pause/re-enable reminders, inspect collapsed demo tools.
-5. Demo tools — add sample time to cross a limit; view the reminder; choose a break, snooze 15 min, dismiss for the day, select another activity, or propose a temporary change.
-6. Return to Today — confirm state and Undo.
-7. Reload — verify preferences persist on the same origin.
-8. Responsive/keyboard — verify no clipping or inaccessible primary actions.
-
-**Unverified until device QA:** exact physical iPhone appearance, macOS WebKit parity, native Screen Time authorizations, extension pairing, and physical board connectivity.
+## Native handoff still required
+Unify native category models and shared preferences; use permission-aware app identity and tracking; validate Apple's Screen Time data export constraints; implement authorized notification and board delivery, real device pairing, cross-device reconciliation and secure sync. Verify deduplication across independent devices, permission denial/revocation, offline recovery and background scheduling. The local web scheduler works only while the browser is active. No claims of production or accessibility certification are made.
