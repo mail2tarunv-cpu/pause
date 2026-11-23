@@ -1,55 +1,89 @@
-# PAUSE — Web prototype acceptance checklist
+# PAUSE — Minimal Web UX Specification (November 2026)
 
-**Surfaces:** `/phone/` and `/mac/` in the existing Vercel-linked repository.
+## Why the redesign
 
-## Design direction
+The older web prototypes had 5 phone tabs and 7 Mac navigation destinations, repeated activity metrics, embedded test controls on Today, and standalone pages for browser/cloud/board integrations. That duplicated content and competed with the actual purpose: a short check-in that helps someone leave their screen.
 
-One visual language across both experiences: warm white surfaces, charcoal type, one restrained coral-orange accent, editorial serif headings, standard sans-serif controls, low-contrast dividers, Lucide iconography, quiet gradients, and clear component states. No emoji used as interface icons. macOS retains desktop density and a sidebar; iPhone uses a comfortable single-column layout and bottom navigation.
+## New information architecture
 
-## Primary user journey
+**Main navigation (both Mac and phone):**
+- Today
+- My plan
+- Settings
 
-1. **First use** — explain what PAUSE does and the limits of this browser-only preview. Allow skip.
-2. **Set a limit** — choose a monitored app and a daily time target.
-3. **Choose hobbies** — select activities, preferred days and a time window. Make all preferences editable.
-4. **See the activity** — review a daily sample activity overview and app-specific usage relative to the saved limit.
-5. **Over limit** — clearly report how much time was used, the chosen limit, and a relevant activity.
-6. **Respond** — break, extend 15 minutes, or dismiss. Never block or pretend the hobby was completed.
-7. **Recover** — edit limits, change hobbies, pause previews or revisit onboarding from Settings.
+**One-level detail:** Activity (from the Today usage card)
 
-## QA paths
+**Contextual dialogs:** Add/edit/remove app limit, add/edit/remove activity, quiet hours, reminder, another activity, context feedback, approval. These are not navigation tabs.
 
-### Phone (`/phone/`)
+**Separate surface:** Ambient board remains available via Settings → Ambient board and the site root, without a duplicate full board controller in the phone or Mac dashboard.
 
-- Fresh browser: onboarding appears with step progress, Back, Continue, Skip, Finish.
-- Choose a Discord limit, choose a hobby and preferred time, finish setup.
-- Today: week selection strip, app time and personalized hobby card.
-- Activity: day/week/month sample graph, individual app rows, simulated +10 minutes, and a local PAUSE-page timer.
-- Limits: per-app slider, reminder toggle, check-in preview and additive sample usage.
-- Activities: add, set as primary, edit preferred time/days, remove.
-- Settings: toggle preview session tracking, toggle reminders/motion, reopen onboarding, reset sample data, access Board preview.
-- Board: edit six-row message and choose preset.
-- Reload: changes persist in the same browser; onboarding stays completed.
+## Screen content
 
-### Mac (`/mac/`)
+### Today
+- Total time across selected sample apps, explicitly labeled
+- One meaningful usage distribution chart (sample only)
+- Next planned offline activity that respects preferred day/time
+- Configured daily limits with used/limit comparison
+- Contextual link to a reminder when a sample limit has been exceeded
+- Temporary choice confirmation with Undo
 
-- Fresh browser: 3-step setup appears, with app selection, limit, multiple hobbies, time and days.
-- Overview: sample usage, active app totals, limits, reminder and hobby card.
-- Activity: day/week graph, category totals, per-app +10-minute test controls, and browser-only session timer.
-- Limits: edit every daily app limit, preview the reminder and pause previews.
-- Activities: set primary, add, edit name/time/days, remove.
-- Board: split-flap text preview and presets.
-- Connections: explain native browser pairing and optional cloud connection without exposing or accepting secrets.
-- Settings: preview tracking, reminder settings, theme, re-open onboarding, reset.
-- Reload: saved setup and preferences persist.
+### Activity
+- Day/week sample distribution
+- Total time and most-used selected app
+- Per-app used minutes and limit progress
+- Explicit sample-data note
 
-## Explicit capability boundary
+### My plan
+- Daily app limits: app, limit, enabled state, edit/remove, add
+- Offline activities: name, days and time, edit/remove, add
+- Rest is a valid activity; completion is not inferred
 
-The deployed website **cannot read real iOS Screen Time or Mac foreground-app activity**. Sample app usage is for design tests only. The only real browser measurement is how long a visitor leaves the PAUSE preview visible, and it is local. Production monitoring belongs in the separately installed, permission-aware native clients. The Mac Swift tracker already uses `NSWorkspace.shared.frontmostApplication`, an idle-time check, and a localhost browser domain bridge. It is not connected to these preview pages.
+### Settings
+- Reminder enable/disable
+- Pause reminders
+- Editable quiet hours
+- Transparent device-data and privacy limitation
+- Link to ambient board
+- Review onboarding
+- Collapsed sample simulation/testing controls
 
-## Release checks
+### Onboarding
+1. Welcome, with privacy and sample-data explanation
+2. Choose apps
+3. Set daily limits
+4. Choose offline activities, days, and times
+5. Review and start
 
-- Both HTML entries reference their latest CSS, JavaScript and Lucide assets.
-- Published Vercel build is READY.
-- HTTP 200 on `/phone/`, `/mac/` and the referenced JS/CSS.
-- JavaScript syntax checks pass before commit.
-- Browser-based interaction and physical-device visual QA should still be performed before calling a native release production ready.
+## Important system boundaries
+
+- Mac native app: real foreground-app tracking and idle exclusion are possible only in the native Swift implementation.
+- iOS native app: Apple Screen Time entitlements and authorization are required, and protected app usage may not be exportable or freely synced.
+- Browser versions: app usage numbers are fictional and used for UI evaluation; preferences persist only in browser local storage.
+- Cross-device sync is not implemented in these prototypes. Opening both URLs in the same browser shares local storage, but separate phones and computers do not automatically synchronize.
+- No automatic app blocking, invented activity completion, points, streaks, forced activity reflection, or real matching.
+
+## Accessibility acceptance
+
+- Semantic main, navigation, labels, and form controls
+- 44 px touch and click targets for primary controls
+- Visible keyboard focus
+- Modal focus management, Escape, and Tab containment
+- Names and values visible independent of color
+- Readable small-text contrast on light surfaces
+- Reduced-motion preference respected
+- Status updates announced to assistive technology
+- Sample data distinguished from measured usage in text
+- Test with keyboard, VoiceOver, narrow screens, zoom, and real devices before native release
+
+## Validation flow
+
+1. Fresh browser — welcome → apps → limits → activities → review → Today.
+2. My plan — edit app limit; add/edit/remove activity.
+3. Today — view usage and drill into Activity.
+4. Settings — edit quiet hours, pause/re-enable reminders, inspect collapsed demo tools.
+5. Demo tools — add sample time to cross a limit; view the reminder; choose a break, snooze 15 min, dismiss for the day, select another activity, or propose a temporary change.
+6. Return to Today — confirm state and Undo.
+7. Reload — verify preferences persist on the same origin.
+8. Responsive/keyboard — verify no clipping or inaccessible primary actions.
+
+**Unverified until device QA:** exact physical iPhone appearance, macOS WebKit parity, native Screen Time authorizations, extension pairing, and physical board connectivity.

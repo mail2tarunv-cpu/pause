@@ -1,29 +1,31 @@
-# PAUSE for Mac — Web Design Prototype
+# PAUSE Mac — Interface Preview
 
-Editable, interactive web version of the PAUSE macOS companion for iterating on layouts, copy, and flows before updating the native SwiftUI app.
+**Live preview:** https://pause-jade.vercel.app/mac/
 
-**Preview:** https://pause-jade.vercel.app/mac/
-**Source:** `mac/index.html`, `mac/styles.css`, and `mac/app.js`
-**Existing native app:** `macos/`. This web prototype does not modify the Swift source.
+The Mac web preview now uses the same reusable interface code as the phone preview:
 
-## Explore
+- `../shared/pause.js` — onboarding, screen content, local preferences, limit and activity editing, reminder states, and keyboard interactions.
+- `../shared/pause.css` — responsive layout, typography, components, and accessible focus states.
+- `index.html` — Mac entry page.
 
-- Overview: dot-matrix active time, daily timeline, most used apps, an over-limit check-in, and a personalized offline activity.
-- Activity: day/week visualization, category totals, and simulated per-app time. Use “+10 min” to test exceeding a limit.
-- Limits & nudges: edit the daily limit of each app and preview a non-blocking reminder.
-- My activities: add/remove hobbies, set time windows and choose the primary activity used in reminders.
-- Display: edit and preview a 6 × 22-character split-flap message.
-- Connections: see the planned local browser pairing and optional PAUSE Cloud architecture.
-- Settings: simulated tracking state, reminder previews, theme toggle, and reset.
+## Primary screens
 
-All settings are saved in this browser's `localStorage`. There is no login, server-side data storage or third-party analytics in this prototype. Sample usage is fictional and labelled as such; controls change only the demo model.
+1. **Today** — selected-app time, a compact usage chart, the next planned activity, and configured limits.
+2. **My plan** — daily app limits and offline activities, with add/edit/remove dialogs.
+3. **Settings** — reminder on/off, quiet hours, pause, native device boundary, optional ambient board access, and collapsed preview tools.
 
-## Native integration later
+**Activity** is a secondary drill-down from Today. **Reminder** is a contextual dialog; break, snooze, dismissal, feedback, approval, and Undo are states, not permanent navigation destinations.
 
-The existing `macos/App/MacActivityStore.swift` uses macOS `NSWorkspace.shared.frontmostApplication`, Core Graphics idle detection, and a local browser-extension domain bridge. A website hosted on Vercel cannot use these APIs to record other applications' foreground time. This is a separate visual prototyping layer, not a replacement tracker.
+First use uses a shared five-step onboarding: welcome, select apps, set daily limits, select activities and schedules, review.
 
-After design review, port selected screens and interactions into `macos/App/MacDashboard.swift` and new SwiftUI views, then test foreground measurement, app limits, notification permissions, browser pairing, and display integration on a real Mac.
+## Important technical boundary
 
-## Privacy
+This Vercel page cannot observe the foreground macOS app. All per-app time is explicitly labeled **sample activity**; it is not actual tracking. Use the existing `../macos/` Swift project for NSWorkspace foreground tracking, idle exclusion, and native notification behavior after the UX is approved.
 
-Never put actual browser-extension pairing tokens, cloud secrets, or account passwords into this demo. For real app tracking, continue using the native-only local tracker and keep its explicit privacy model.
+The two web previews share a local-storage model when visited from the **same browser and origin**. This is **not cross-device sync**. No credentials or tracking information are sent to a backend by this prototype.
+
+## Testing
+
+Navigate with keyboard only, complete the onboarding, edit a limit and activity, test the reminder, try 15 more minutes, then Undo. Check the phone layout at narrow widths and the Mac layout at desktop size. Verify the labels and local demo notice are clear. Source scripts in the former Mac prototype have been retired from the live build.
+
+See `docs/WEB-UX-ACCEPTANCE.md` for the full screen inventory and QA boundaries.
